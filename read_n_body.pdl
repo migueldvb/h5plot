@@ -1,0 +1,8 @@
+# vim: set ft=perl:
+# read N body data
+
+sub read_n_body {
+#    my $filename = $_;
+   print "Reading $n_body_file \n";
+   ($x_body,$y_body) = rcols "$n_body_file",0,1, { LINES => '2:3' };
+}

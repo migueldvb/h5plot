@@ -1,0 +1,321 @@
+# vim: set ft=perl:
+# read FLASH HDF5 AMR data and interpolate to a uniform grid
+
+# sub read_flash("$filename") {
+sub read_flash {
+   $filename = shift;
+#    my $filename = "/home/miguel/runs/mako/V4046-cart/V4046-cart_hdf5_plt_cnt_0050";
+# check if the file exists
+   open ($input,"<$filename") || die "$filename does not exist\n";
+   close ("$input");
+
+   # open data file 
+   my $hdfFile = new PDL::IO::HDF5("$filename");
+#    my $filename = $hdfFile->filename;
+
+   print "\n";
+   print "Reading $filename\n";
+   
+   # get a list of all the groups at the root '/'
+   my @groups = $hdfFile->groups;
+
+   # get a list of all datasets in the root '/' group
+   my @datasets =  $hdfFile->datasets;
+
+#    print "Datasets \n";
+#    print "-------- \n";
+#    for($i=0; $i<=$#datasets; $i++) { 
+#       print "$datasets[$i] \n";
+#    }
+#    print "\n\n";
+
+   my @attrs = $hdfFile->attrs;
+#    print "Attributes \n";
+#    print "---------- \n";
+#    for($i=0; $i<=$#attrs; $i++) {
+#       print "$attrs[$i] \n";
+#    }
+
+#    my $geometry = $hdfFile->attrGet('geometry name');
+#    print "$geometry \n";
+
+# read geometry using h5dump
+# only scalar attributes are supported by PDL-IO-HDF5
+   $geometry = `h5dump -a 'geometry name' $filename | grep "(0)"`;
+   chomp($geometry);
+# remove everything up to double quotes and keep the first word 
+   $geometry =~ s/^.*?\"(\w*) *\"$/$1/;
+
+# read simulation parameters using h5dump
+   my @simparams = `h5dump -d "simulation parameters" $filename | egrep -v "[{};]"`;
+   $i = 0;
+   foreach (@simparams) {
+      chomp;
+      $params[$i] = $_;
+# remove trailing spaces and possible leading comma
+      $params[$i] =~ s/^ *([^,]+).*/$1/;
+      $i++;
+   }
+#    my ($total_blocks, $time, $timestep, $redshift, $number_steps, $nxb, $nyb, $nzb);
+   if ($#simparams == 6) {
+      ($total_blocks, $time, $timestep, $number_steps, $nxb, $nyb, $nzb) = @params;
+   } elsif ($#simparams == 7) {
+      ($total_blocks, $time, $timestep, $redshift, $number_steps, $nxb, $nyb, $nzb) = @params;
+   }
+#    print "@params \n";
+
+   my $dataset7 = $hdfFile->dataset('unknown names');
+   $unk_names = $dataset7->get();
+
+   if (! $var) { $var = "dens"; }
+
+   # check that $var is one of the stored variables
+   @dims_unk = $unk_names->dims;
+   for ($i=0;$i<$dims_unk[2];$i++) {
+   # strings are obtained in this way using PDL::Char
+      if ($var eq $unk_names->atstr(0,"$i")) {
+         print "Reading variable $var \n";
+         my $dataset1 = $hdfFile->dataset($var);
+         $amr_data = $dataset1->get();
+         last;
+      }
+   }
+   # die if $var was not found 
+   if ($i == $dims_unk[2]) {
+      print "Unknown variables are: $unk_names \n";
+      die "$var is not defined in $filename\n";
+   }
+
+   # only scalar attributes can be read
+#    my $zmin = $dataset->attrGet('minimum');
+#    my $zmax = $dataset->attrGet('maximum');
+
+   my $dataset2 = $hdfFile->dataset( 'coordinates');      # create a new or open existing dataset
+   $coord = $dataset2->get();
+
+   my $dataset3 = $hdfFile->dataset( 'block size');      # create a new or open existing dataset
+   $size = $dataset3->get();
+
+# simulation parameters is a compound dataset
+#    my $dataset = $hdfFile->dataset( 'simulation parameters'); 
+#    $sim_parms = $dataset->get();
+#    $nxb=8;
+#    $nyb=8;
+
+   my $dataset4 = $hdfFile->dataset( 'refine level');
+   $lrefine = $dataset4->get();
+
+   my @dims = $size->dims;
+   $ndim = $dims[0];
+   my $ngid = long(2**$ndim+1+2*$ndim);
+
+   my $dataset5 = $hdfFile->dataset( 'node type');
+   $node_type = $dataset5->get();
+
+   my $dataset6 = $hdfFile->dataset( 'gid');
+   $gid = $dataset6->get();
+
+   my $dataset8 = $hdfFile->dataset( 'bounding box');
+   $bnd_box = $dataset8->get();
+
+   if ($vect_mode || $stream_mode) {
+      my $dataset9 = $hdfFile->dataset('velx');
+      $velx = $dataset9->get();
+
+      my $dataset10 = $hdfFile->dataset('vely');
+      $vely = $dataset10->get();
+   }
+
+# find the minimum and maximum refinement levels of the good data
+   $index_good = which($node_type == 1);
+   $lmax = max($lrefine->index($index_good));
+   $lmin = min($lrefine->index($index_good));
+   $lwant = $lmax;
+
+# calculate domain ranges
+   $xrange[0] = min($bnd_box->slice('0,0,:'));
+   $xrange[1] = max($bnd_box->slice('1,0,:'));
+
+   $yrange[0] = min($bnd_box->slice('0,1,:'));
+   $yrange[1] = max($bnd_box->slice('1,1,:'));
+
+   if ($ndim == 3) {
+      $zrange[0] = min($bnd_box->slice('0,2,:'));
+      $zrange[1] = max($bnd_box->slice('1,2,:'));
+   }
+
+#    print "@xrange\n";
+#    print pi." @yrange\n";
+
+# compute the number of top level blocks in each direction
+   $top_blocks = which($lrefine == 1);
+#    print "$top_blocks\n";
+   $ntopx = 1;
+   $ntopy = 1;
+   $ntopz = 1;
+
+   if ($ndim == 1) {
+      $ntopx = which($bnd_box->slice("0,0,:")->flat->index($top_blocks) == $xrange[0]);
+      $ntopx = $ntopx->getdim(0);
+   } elsif ($ndim == 2) {
+# find the number of level 1 blocks whose lower y coord is the bottom of the domain
+      $ntopx = which($bnd_box->slice("0,1,:")->flat->index($top_blocks) == $yrange[0]);
+      $ntopx = $ntopx->getdim(0);
+
+ # this is to support strange domain shapes
+ #    $ntopx2 = which($bnd_box->slice("1,1,:")->flat->index($top_blocks) == $yrange[1]);
+ #    $tmp1=$ntopx1->getdim(0);
+ #    $tmp2=$ntopx2->getdim(0);
+ #    $ntopx = reduce { $a > $b ? $a : $b } $tmp1,$tmp2;
+
+      $ntopy = which($bnd_box->slice("0,0,:")->flat->index($top_blocks) == $xrange[0]);
+      $ntopy = $ntopy->getdim(0);
+#    print "$ntopy \n";
+   } elsif ($ndim == 3) {
+# find the number of level 1 blocks whose lower y coord is the minimum
+# y value and whose lower z coord is the minimum z value
+      $ntopx = which($bnd_box->slice("0,1,:")->flat->index($top_blocks) == $yrange[0]);
+      $ntopx = which($bnd_box->slice("0,2,:")->flat->index($top_blocks)->index($ntopx) == $zrange[0]);
+#       print "$ntopx \n";
+      $ntopx = $ntopx->getdim(0);
+
+      $ntopy = which($bnd_box->slice("0,0,:")->flat->index($top_blocks) == $xrange[0]);
+      $ntopy = which($bnd_box->slice("0,2,:")->flat->index($top_blocks)->index($ntopy) == $zrange[0]);
+#       print "$ntopy \n";
+      $ntopy = $ntopy->getdim(0);
+
+      $ntopz = which($bnd_box->slice("0,0,:")->flat->index($top_blocks) == $xrange[0]);
+      $ntopz = which($bnd_box->slice("0,1,:")->flat->index($top_blocks)->index($ntopz) == $yrange[0]);
+#       print "$ntopz \n";
+      $ntopz = $ntopz->getdim(0);
+   }
+
+# calculate number of zones in each direction
+   $dx_fine = ($xrange[1]-$xrange[0])/($ntopx*$nxb*2**($lwant-1));
+   $dy_fine = ($yrange[1]-$yrange[0])/($ntopy*$nyb*2**($lwant-1));
+   $dz_fine = ($zrange[1]-$zrange[0])/($ntopz*$nzb*2**($lwant-1)) if ($ndim == 3);
+#    print "dx_fine = $dx_fine, dy_fine = $dy_fine \n";
+
+# declare the storage for the uniformly gridded result
+   $nx = long ($ntopx*$nxb*2**($lwant-1));
+   $ny = long ($ntopy*$nyb*2**($lwant-1));
+   $nz = long ($ntopz*$nzb*2**($lwant-1)) if ($ndim == 3);
+#    print "$dx_fine $dy_fine\n";
+#    print "$nx $ny\n";
+   print "(n_x,n_y,n_z) = ($nx,$ny,$nz) \n";
+
+   if ($ndim == 1) {
+      $plot_var = zeroes("$nx");
+   } elsif ($ndim == 2) {
+      $plot_var = zeroes("$nx","$ny");
+      $temp_velx = zeroes("$nx","$ny");
+      $temp_vely = zeroes("$nx","$ny");
+   } elsif ($ndim == 3) {
+      $plot_var_3d = zeroes("$nx","$ny","$nz");
+      $temp_velx = zeroes("$nx","$ny","$nz");
+      $temp_vely = zeroes("$nx","$ny","$nz");
+   }
+# define the uniform arrays
+#    if (($plane == 0) or (!$plane)) {
+#       $plot_var = zeroes("$nx","$ny");
+#       $temp_velx = zeroes("$nx","$ny");
+#       $temp_vely = zeroes("$nx","$ny");
+#    } elsif ($plane == 1) {
+#       $plot_var = zeroes("$nx","$nz");
+#    } elsif ($plane == 2) {
+#       $plot_var = zeroes("$ny","$nz");
+#    }
+   $plot_var .= -1.e30;
+
+   $x = (xvals("$nx")+.5)*$dx_fine + $xrange[0];
+   $y = (xvals("$ny")+.5)*$dy_fine + $yrange[0];
+   $z = (xvals("$nz")+.5)*$dz_fine + $zrange[0] if ($ndim == 3);
+#    print "$x \n";
+#    print "$nx \n";
+
+   $num_plot_blocks = $index_good->getdim(0);
+#    print "$num_plot_blocks \n";
+
+# Loop over blocks
+   for($i=0; $i<$num_plot_blocks; $i++) {
+      # current block
+      $cur_blk = $index_good->index($i);
+#       print "$cur_blk \n";
+      $scaling = 2.**($lwant - $lrefine->index($cur_blk));
+#       print "$scaling \n";
+#       print "$i $scaling\n";
+# find out where the master array should live
+      $xind = which($x > $bnd_box->slice("0,0,$cur_blk"));
+      $xind = $xind->index(0);
+#       $xindex = $x->index($ind)- $xrange[0];
+      $yind = which($y > $bnd_box->slice("0,1,$cur_blk"));
+      $yind = $yind->index(0);
+
+      if ($ndim == 3) {
+         $zind = which($z > $bnd_box->slice("0,2,$cur_blk"));
+         $zind = $zind->index(0);
+      }
+#       print " $i $xind $yind\n";
+      $xspan = $scaling*$nxb-1;
+      $xend = $xind + $xspan;
+#     check that we are not out of bounds
+      if ($xend > $nx-1) {
+         print $cur_blk.' $xend > $nx-1'."\n";
+         print "$xend > $nx-1 \n";
+         next;
+      }
+      $yspan = $scaling*$nyb-1;
+      $yend = $yind + $yspan;
+#     check that we are not out of bounds
+      if ($yend > $ny-1) {
+         print $cur_blk.' $yend > $ny-1'."\n";
+         print "$yend > $ny-1 \n";
+         next;
+      }
+      $zspan = $scaling*$nzb-1;
+      $zend = $zind + $zspan;
+#       print "$temp_merge \n";
+      $xsubarray=$scaling*$nxb;
+      $ysubarray=$scaling*$nyb;
+      $zsubarray=$scaling*$nzb;
+      @tmpdims = $amr_data->slice(":,:,:,$cur_blk")->dims;
+      if ($ndim == 2) {
+         $sub_array = zeroes "$xsubarray", "$ysubarray";
+         # use map with linear interpolation
+#          $sub_array = $amr_data->slice(":,:,:,$cur_blk")->map(t_identity,$sub_array,{method=>'s',b=>'e'});
+         rescale2d($amr_data->slice(":,:,:,$cur_blk"),$sub_array);
+      } elsif ($ndim == 3) {
+         $tmp_sub_array = zeroes "$xsubarray", "$ysubarray", "$tmpdims[2]";
+         $sub_array = zeroes "$xsubarray", "$ysubarray", "$zsubarray";
+         # Hack to map 3-D arrays exchanging dimensions in $tmp_sub_array
+         $tmp_sub_array = $amr_data->slice(":,:,:,$cur_blk")->map(t_identity,$tmp_sub_array,{method=>'s',b=>'e'});
+         $tmp_sub_array = $tmp_sub_array->xchg(1,2);
+         $sub_array = $tmp_sub_array->map(t_identity,$sub_array,{method=>'s',b=>'e'});
+         $sub_array = $sub_array->xchg(1,2);
+      }
+
+      if ($ndim == 2) {
+         $plot_var->slice("$xind:$xend,$yind:$yend") .= $sub_array;
+      } elsif ($ndim == 3) {
+         $plot_var_3d->slice("$xind:$xend,$yind:$yend,$zind:$zend") .= $sub_array;
+      }
+
+      if ($vect_mode || $stream_mode && ($ndim == 2)) {
+         $sub_array = zeroes "$xsubarray", "$ysubarray";
+         rescale2d($velx->slice(":,:,0,$cur_blk"),$sub_array);
+         $temp_velx->slice("$xind:$xend,$yind:$yend") .= $sub_array ;
+
+         $sub_array = zeroes "$xsubarray", "$ysubarray";
+         rescale2d($vely->slice(":,:,0,$cur_blk"),$sub_array);
+         $temp_vely->slice("$xind:$xend,$yind:$yend") .= $sub_array ;
+      }
+   }
+
+   if ($ndim == 2) {
+      $profile = zeroes("$nx");
+      for($i=0; $i<$nx; $i++) {
+      #          $profile->index($i) .= sum($plot_var->slice("$i,:"))/$ny/$dens0;
+         $profile->index($i) .= sum($plot_var->slice("$i,:"))/$ny;
+      }
+   }
+}
