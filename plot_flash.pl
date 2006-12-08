@@ -20,7 +20,6 @@ GetOptions ("log"   => \$log_mode,
            "polar"  => \$polar_mode,
            "cart"   => \$cart_mode,
            "png=s"  => \$png_mode,
-           "dens"   => \$dens_mode,
            "var=s"  => \$var,
            "vect"   => \$vect_mode,
            "block"  => \$block_mode,
@@ -29,6 +28,8 @@ GetOptions ("log"   => \$log_mode,
            "rslice=i"=> \$rslice,
            "pslice=i"=> \$pslice,
            "ns=i"   => \$ns,
+           "nrv=i"  => \$nrv,
+           "nav=i"  => \$nav,
            "point=i"=> \$point,
            "plane=i{2}"=> \@plane,
            "scale=f{2}"=> \@scale,
@@ -47,11 +48,12 @@ if ($help) {
     --polar               Polar coordinates
     --cart                Cartesian coordinates
     --png                 PNG output
-    --dens                Plot density
     --var unk             Plot unknown variable
     --vect                Overplot velocity vectors
     --block               Draw blocks
     --ns levels           Set number of shade levels
+    --nxv r spacing       Sets spacing of vectors
+    --nyv phi spacing     Sets spacing of vectors
     --font number         Selects stroke font set (0 or 1, def:1)
     --help                Print out this message
 
@@ -562,9 +564,31 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 
    if ($vect_mode) {
       print "Plot vectors \n";
-      plvect ($temp_velx, $temp_vely , 1, \&pltr2, $cgrid2);
-   #    plvect ($temp_velx, $temp_vely , $nx, $ny, 0, \&pltr0, 0);
-   #    plvect ($temp_velx, $temp_vely , 1., \&pltr0, 2);
+      $nrv = 30 if (! $nrv);
+      $nav = 40 if (! $nav);
+      $dr = ($xmax-$xmin)/($nrv-1.);
+      $dphi = 2.*pi/($nav-1.);
+      $velx_bin = zeroes $nrv,$nav;
+      $vely_bin = zeroes $nrv,$nav;
+      $rarr_bin = (sequence($nrv))->dummy(1,$nav);
+      $rarr_bin = $xmin + $dr*$rarr_bin;
+      $phiarr_bin = (sequence($nav))->dummy(0,$nrv);
+      $phiarr_bin = -pi + $dphi*$phiarr_bin;
+      # rebin the velocities
+      rescale2d($temp_velx,$velx_bin);
+#       $velx_bin = $temp_velx->map(t_identity, $velx_bin, {b=>'e'});
+      rescale2d($temp_vely, $vely_bin);
+#       $vely_bin = $temp_vely->map(t_identity, $vely_bin, {b=>'e'});
+      if ($cart_mode) {
+         $velxtmp = $velx_bin*cos($phiarr_bin) - $vely_bin*sin($phiarr_bin);
+         $velytmp = $velx_bin*sin($phiarr_bin) + $vely_bin*cos($phiarr_bin);
+         $cgrid2bin = plAlloc2dGrid ($rarr_bin * cos ($phiarr_bin),
+            $rarr_bin * sin ($phiarr_bin));
+         plvect ($velxtmp, $velytmp, .3, \&pltr2, $cgrid2bin);
+      } else {
+         $cgrid2bin = plAlloc2dGrid ($rarr_bin, $phiarr_bin);
+         plvect ($velx_bin, $vely_bin , 0, \&pltr2, $cgrid2bin);
+      }
    }
 
    # $pl->shadeplot ($plot_var, $ns,
