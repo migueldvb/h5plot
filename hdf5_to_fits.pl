@@ -7,19 +7,14 @@ use PDL::AutoLoader;
 use PDL::Transform;
 use PDL::IO::HDF5;
 use PDL::IO::FITS;
-# use Astro::IO::CFITSIO;
 use PDL::Image2D;
 use Getopt::Long qw [:config pass_through];
 use Text::Wrap;
 use Math::Trig qw [pi];
 
-# Parse ptions from command line 
-my $ns = 32;
-
+# Parse options from command line 
 GetOptions ("save=s" => \$f_name,
            "help"   => \$help);
-
-my @notes = ("Set ns about 16");
 
 if ($help) {
    print (<<EOT);
@@ -27,7 +22,6 @@ if ($help) {
     --help                Print out this message
 
 EOT
-   print (wrap ('', '', @notes), "\n");
    push (@ARGV, "-h");
 }
 # print "@ARGV \n";
@@ -36,7 +30,7 @@ EOT
 # get the file string from the command line
 die "Please give HDF5 data file\n" if (! $ARGV[0]);
 
-# read file string and number
+# parse file string and number
 my ($file_string, $file_number) = $ARGV[0] =~ /^(.*)_([0-9]*)/;
 my ($file_base) = $ARGV[0] =~ /^(.*)_hdf.*/;
 
@@ -55,10 +49,24 @@ $filename = "$file_string"._."$file_number";
 
 &read_flash("$filename");
 
-$plot_var_new = zeroes 4.*($plot_var->dims)[0], 4.*($plot_var->dims)[0];
+# Define square matrix
+# $plot_var_cart = zeroes("$nx","$nx");
+$plot_var_cart = zeroes(800,800);
 
-$plot_var_new = $plot_var->map(t_identity,$plot_var_new,{method=>'s',b=>'e'});
+# Add zero values between 0:$xrange[0]
+my $nx2 = int ($nx * $xrange[1]/($xrange[1]-$xrange[0]));
+my $nxi = $nx2-$nx;
+my $nxf = $nx2-1;
 
-wfits $plot_var_new, "$filename.fits";
+$plot_var_new = zeroes("$nx2","$ny");
+
+$plot_var_new->slice("$nxi:$nxf,:") .= $plot_var;
+
+$ts  = t_linear(s => [2.0*pi/($ny-1), 40]);
+$tu  = !t_radial();
+
+$plot_var_cart = transpose($plot_var_new)->map($tu x $ts,$plot_var_cart,{method=>'l'});
+
+wfits $plot_var_cart, "$filename.fits";
 # $plot_var->wfits("$filename.fits");
 

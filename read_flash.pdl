@@ -312,10 +312,11 @@ sub read_flash {
    }
 
    if ($ndim == 2) {
-      $profile = zeroes("$nx");
-      for($i=0; $i<$nx; $i++) {
-      #          $profile->index($i) .= sum($plot_var->slice("$i,:"))/$ny/$dens0;
-         $profile->index($i) .= sum($plot_var->slice("$i,:"))/$ny;
-      }
+      $profile = $plot_var->xchg(0,1)->sumover / $ny;
+#       $profile = zeroes("$nx");
+#       for($i=0; $i<$nx; $i++) {
+#       #          $profile->index($i) .= sum($plot_var->slice("$i,:"))/$ny/$dens0;
+#          $profile->index($i) .= sum($plot_var->slice("$i,:"))/$ny;
+#       }
    }
 }
