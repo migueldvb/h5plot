@@ -313,6 +313,7 @@ sub read_flash {
 
    if ($ndim == 2) {
       $profile = $plot_var->xchg(0,1)->sumover / $ny;
+      wcols $x, $profile, "prof.$number";
 #       $profile = zeroes("$nx");
 #       for($i=0; $i<$nx; $i++) {
 #       #          $profile->index($i) .= sum($plot_var->slice("$i,:"))/$ny/$dens0;

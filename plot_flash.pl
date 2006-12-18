@@ -217,7 +217,7 @@ print "tvisc = $tvisc \n" if ($tvisc);
 # cmap1_init();
 # loop over files
 for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
-   my $number = sprintf("%04u", $j);
+   $number = sprintf("%04u", $j);
    $filename = "$file_string"._."$number";
 
    &read_flash("$filename");

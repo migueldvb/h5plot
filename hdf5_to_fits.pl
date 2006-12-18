@@ -62,8 +62,8 @@ $plot_var_new = zeroes("$nx2","$ny");
 
 $plot_var_new->slice("$nxi:$nxf,:") .= $plot_var;
 
-$ts  = t_linear(s => [2.0*pi/($ny-1), 40]);
-$tu  = !t_radial();
+$ts = t_linear(s => [2.0*pi/($ny-1), 40]);
+$tu = !t_radial();
 
 $plot_var_cart = transpose($plot_var_new)->map($tu x $ts,$plot_var_cart,{method=>'l'});
 
