@@ -311,9 +311,16 @@ sub read_flash {
       }
    }
 
+#    wcols $plot_var->xchg(0,1)->flat,
+#         $plot_var->xchg(0,1)->flat,
+#         $plot_var->xchg(0,1)->flat,
+#         $temp_velx->xchg(0,1)->flat,
+#         $temp_vely->xchg(0,1)->flat,
+#         "data.$number";
+
    if ($ndim == 2) {
       $profile = $plot_var->xchg(0,1)->sumover / $ny;
-      wcols $x, $profile, "prof.$number";
+#       wcols $x, $profile, "prof.$number";
 #       $profile = zeroes("$nx");
 #       for($i=0; $i<$nx; $i++) {
 #       #          $profile->index($i) .= sum($plot_var->slice("$i,:"))/$ny/$dens0;
