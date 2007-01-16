@@ -331,7 +331,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
       print "Extrema of averaged $var:\n";
       print "minimum: $y0, maximum: $y1 \n";
       if ($y0 == $y1) {next;}
-      plsdev("null");
+#       plsdev("null");
       plinit;
 #       plenv ($xrange[0], $xrange[1], $y0, $y1, 0, 0);
       plenv ($xmin, $xmax, $y0, $y1, 0, 0);
