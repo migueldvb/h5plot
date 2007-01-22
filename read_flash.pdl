@@ -98,9 +98,6 @@ sub read_flash {
 
 # simulation parameters is a compound dataset
 #    my $dataset = $hdfFile->dataset( 'simulation parameters'); 
-#    $sim_parms = $dataset->get();
-#    $nxb=8;
-#    $nyb=8;
 
    my $dataset4 = $hdfFile->dataset( 'refine level');
    $lrefine = $dataset4->get();

@@ -13,8 +13,9 @@ use Getopt::Long qw [:config pass_through];
 use Text::Wrap;
 use Math::Trig qw [pi];
 
-# Parse ptions from command line 
+# Parse options from command line 
 my $ns = 32;
+my $dist = 70.;
 
 GetOptions ("log"   => \$log_mode,
            "polar"  => \$polar_mode,
@@ -278,7 +279,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    $dx_fine = float($xrange[1]-$xrange[0])/$nx;
    $dy_fine = float($yrange[1]-$yrange[0])/$ny;
 #    $dy_fine = (2 * pi)/($ny-1.e0);#+5.e-2);
-   $x = ((xvals("$nx")+.5)*$dx_fine + $xrange[0])->dummy(1,"$ny"+1);
+   $x = $dist * ((xvals("$nx")+.5)*$dx_fine + $xrange[0])->dummy(1,"$ny"+1);
    $y = ((xvals("$ny"+1)+.5)*$dy_fine + $yrange[0])->dummy(0,"$nx");
 
 # define a new piddle with one extra row to make transformation
@@ -471,11 +472,13 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
          print "$x_min $y_min \n";
          plwind($x_min, $xrange[1], -$y_min, $y_min);
       } else {
-         plwind(-$xrange[1], $xrange[1], -$xrange[1], $xrange[1]);
+#          plwind(-$xrange[1], $xrange[1], -$xrange[1], $xrange[1]);
+         plwind (-$xrange[1]*$dist, $xrange[1]*$dist, -$xrange[1]*$dist, $xrange[1]*$dist)
       }
 #       plwind($xmin, $xmax, $ymin, $ymax);
-      pllab ("#frx", "#fry", "#frt = $orbit");
+      pllab ("#frx/AU", "#fry/AU", "#frt = $orbit");
 #       pllab ("#frx", "#fry", "");
+
 # for the first data point
       if ($zmin == $zmax) {
          $x = pdl[-$xrange[1],-$xrange[1],$xrange[1],$xrange[1]];
@@ -491,7 +494,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
          plcol0(0);
          plfill ($xseq,$yseq);
       } else {
-         plshades ($plot_var_long, -$xrange[1], $xrange[1], -$xrange[1], $xrange[1],
+         plshades ($plot_var_long, -$xrange[1]*$dist, $xrange[1]*$dist, -$xrange[1], $xrange[1],
             $shedge, $fill_width, $cont_color, $cont_width, 0, 0,
             \&pltr2, $cgrid2);
       }
