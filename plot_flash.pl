@@ -280,6 +280,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    $dy_fine = float($yrange[1]-$yrange[0])/$ny;
 #    $dy_fine = (2 * pi)/($ny-1.e0);#+5.e-2);
    $x = $dist * ((xvals("$nx")+.5)*$dx_fine + $xrange[0])->dummy(1,"$ny"+1);
+#    $x = ((xvals("$nx")+.5)*$dx_fine + $xrange[0])->dummy(1,"$ny"+1);
    $y = ((xvals("$ny"+1)+.5)*$dy_fine + $yrange[0])->dummy(0,"$nx");
 
 # define a new piddle with one extra row to make transformation
