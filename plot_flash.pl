@@ -229,8 +229,12 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
          print "z = ".$z->index($plane[1])."\n";
       } elsif ($plane[0] == 1) {
          $plot_var = zeroes("$nx","$nz");
-         $plot_var = $plot_var_3d->slice(":,$plane[1],:");
+         $plot_var = $plot_var_3d->slice(":,$plane[1],:")->clump(2);
          print "y = ".$y->index($plane[1])."\n";
+      } elsif ($plane[0] == 2) {
+         $plot_var = zeroes("$ny","$nz");
+         $plot_var = $plot_var_3d->slice("$plane[1],:,:")->clump(2);
+         print "x = ".$x->index($plane[1])."\n";
       }
 #       print $z."\n";
    }
@@ -272,22 +276,47 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    $xmax = $xrange[1];
    $ymin = $yrange[0];
    $ymax = $yrange[1];
+   my $abscissa = 'x';
+   my $ord = 'y';
+   if ($ndim == 3) {
+      if ($plane[0] == 1) {
+         $ymin = $zrange[0];
+         $ymax = $zrange[1];
+         $ny = $nz;
+         $abscissa = 'x';
+         $ord = 'z';
+      } elsif ($plane[0] == 2) {
+         $xmin = $yrange[0];
+         $xmax = $yrange[1];
+         $ymin = $zrange[0];
+         $ymax = $zrange[1];
+         $nx = $ny;
+         $ny = $nz;
+         $abscissa = 'y';
+         $ord = 'z';
+      }
+   }
+
    # calculate boundaries
 #    print "@xrange \n";
 #    $xmin = $xcoord[0] if (($xcoord[0] > $xrange[0]) && ($xcoord[0] < $xrange[1]));
 #    $xmax = $xcoord[1] if (($xcoord[1] < $xrange[1]) && ($xcoord[1] > $xrange[0]));
 #    $ymin = $ycoord[0] if (($ycoord[0] > $yrange[0]) && ($ycoord[0] < $yrange[1]));
 #    $ymax = $ycoord[1] if (($ycoord[1] < $yrange[1]) && ($ycoord[1] < $yrange[0]));
-   $ymin = $ycoord[0] if ($ycoord[0]);
-   $ymax = $ycoord[1] if ($ycoord[1]);
+#    $ymin = $ycoord[0] if ($ycoord[0]);
+#    $ymax = $ycoord[1] if ($ycoord[1]);
 
    # transformation to cartesian
-   $dx_fine = float($xrange[1]-$xrange[0])/$nx;
-   $dy_fine = float($yrange[1]-$yrange[0])/$ny;
+#    $dx_fine = float($xrange[1]-$xrange[0])/$nx;
+   $dx_fine = float($xmax - $xmin) / $nx;
+#    $dy_fine = float($yrange[1]-$yrange[0])/$ny;
+   $dy_fine = float($ymax - $ymin) / $ny;
 #    $dy_fine = (2 * pi)/($ny-1.e0);#+5.e-2);
-   $x = $dist * ((xvals("$nx")+.5)*$dx_fine + $xrange[0])->dummy(1,"$ny"+1);
+#    $x = $dist * ((xvals("$nx")+.5)*$dx_fine + $xrange[0])->dummy(1,"$ny"+1);
+   $x = $dist * ((xvals("$nx")+.5)*$dx_fine + $xmin)->dummy(1,"$ny"+1);
 #    $x = ((xvals("$nx")+.5)*$dx_fine + $xrange[0])->dummy(1,"$ny"+1);
-   $y = ((xvals("$ny"+1)+.5)*$dy_fine + $yrange[0])->dummy(0,"$nx");
+#    $y = ((xvals("$ny"+1)+.5)*$dy_fine + $yrange[0])->dummy(0,"$nx");
+   $y = ((xvals("$ny"+1)+.5)*$dy_fine + $ymin)->dummy(0,"$nx");
 
 # define a new piddle with one extra row to make transformation
 # to Cartesians
@@ -446,8 +475,8 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 #          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
          plwind($xmin, $xmax, $ymin, $ymax);
 #          plwind(-40, 40, -40, 40);
-#          pllab ("#frx [R#dH#u]", "#fry [R#dH#u]", "#frt = $time3f");
-         pllab ("#frx / a", "#fry / a", "#frt = $time3f");
+         pllab ("#fr$abscissa [R#dH#u]", "#fr$ord [R#dH#u]", "#frt = $time3f");
+#          pllab ("#frx / a", "#fry / a", "#frt = $time3f");
       } else {
          plvpor(0.2, 0.9, 0.2, 0.9);
 #          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
@@ -456,11 +485,13 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
       }
       if ($zmin == $zmax) {
          plcol1(0);
-         $x = pdl[$xrange[0],$xrange[0],$xrange[1],$xrange[1]];
-         $y = pdl[$yrange[0],$yrange[1],$yrange[1],$yrange[0]];
-         plfill ($x,$y);
+         $xdomain = pdl[$xrange[0],$xrange[0],$xrange[1],$xrange[1]];
+#          $y = pdl[$yrange[0],$yrange[1],$yrange[1],$yrange[0]];
+         $ydomain = pdl[$ymin,$ymax,$ymax,$ymin];
+         plfill ($xdomain,$ydomain);
       } else {
-         plshades ($plot_var, $xrange[0], $xrange[1], $yrange[0], $yrange[1],
+#          plshades ($plot_var, $xrange[0], $xrange[1], $yrange[0], $yrange[1],
+         plshades ($plot_var, $xmin, $xmax, $ymin, $ymax,
             $shedge, $fill_width, $cont_color, $cont_width, 0, 0, 0, 0);
       }
    } elsif ($cart_mode) {
@@ -486,7 +517,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
       pllab ("#frx/AU", "#fry/AU", "#frt = $orbit");
 #       pllab ("#frx", "#fry", "");
 
-# for the first data point
+# for the first data file with uniform density
       if ($zmin == $zmax) {
          $x = pdl[-$xrange[1],-$xrange[1],$xrange[1],$xrange[1]];
          $y = pdl[-$xrange[1],$xrange[1],$xrange[1],-$xrange[1]];
