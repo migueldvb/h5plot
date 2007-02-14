@@ -222,10 +222,16 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    $filename = "$file_string"._."$number";
 
    &read_flash("$filename");
-   if (($ndim == 3) && ($plane[0] == 0)) {
-      $plot_var = zeroes("$nx","$ny");
-      $plot_var = $plot_var_3d->slice(":,:,$plane[1]");
-      print "z = ".$z->index($plane[1])."\n";
+   if ($ndim == 3) {
+      if ($plane[0] == 0) {
+         $plot_var = zeroes("$nx","$ny");
+         $plot_var = $plot_var_3d->slice(":,:,$plane[1]");
+         print "z = ".$z->index($plane[1])."\n";
+      } elsif ($plane[0] == 1) {
+         $plot_var = zeroes("$nx","$nz");
+         $plot_var = $plot_var_3d->slice(":,$plane[1],:");
+         print "y = ".$y->index($plane[1])."\n";
+      }
 #       print $z."\n";
    }
 # Move the grid in azimuth
