@@ -349,7 +349,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    # calculate time in orbits
    $orbit = $time/2/pi;
    $orbit = sprintf("%.3f", $orbit);
-   $time3f = sprintf("%.3f", $time);
+   $time3f = sprintf("%.3f", $time*2*pi);
    print "t = $orbit orbits\n";
 
    cmap1_init();

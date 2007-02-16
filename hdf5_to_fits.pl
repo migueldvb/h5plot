@@ -31,42 +31,33 @@ EOT
 die "Please give HDF5 data file\n" if (! $ARGV[0]);
 
 # parse file string and number
-my ($file_string, $file_number) = $ARGV[0] =~ /^(.*)_([0-9]*)/;
-my ($file_base) = $ARGV[0] =~ /^(.*)_hdf.*/;
-
-# read the final file number
-if (($ARGV[1]) && ($ARGV[1]>=0) ) {
-   $end_number = $ARGV[1];
-   # FIXME: accept a file name as $ARGV[1]
-#    $end_number = $ARGV[1] =~ /^.*([0-9]{,4})/;
-} else {
-   $end_number = 9999;
-}
-
-die "$end_number should be >= $file_number \n" if ($end_number < $file_number);
-
-$filename = "$file_string"._."$file_number";
+$filename = $ARGV[0];
 
 &read_flash("$filename");
 
 # Define square matrix
-# $plot_var_cart = zeroes("$nx","$nx");
-$plot_var_cart = zeroes(800,800);
+$ncart = 800;
+$plot_var_cart = zeroes($ncart,$ncart);
 
 # Add zero values between 0:$xrange[0]
 my $nx2 = int ($nx * $xrange[1]/($xrange[1]-$xrange[0]));
-my $nxi = $nx2-$nx;
-my $nxf = $nx2-1;
+my $nxi = $nx2 - $nx;
+my $nxf = $nx2 - 1;
 
 $plot_var_new = zeroes("$nx2","$ny");
 
+# zero in 0:$nxi-1
 $plot_var_new->slice("$nxi:$nxf,:") .= $plot_var;
 
-$ts = t_linear(s => [2.0*pi/($ny-1), 40]);
+# Convert to Cartesian coords
+$ts = t_linear(scale => [2.0*pi/($ny-1), 140./$ncart]); #scale in y and x
 $tu = !t_radial();
 
 $plot_var_cart = transpose($plot_var_new)->map($tu x $ts,$plot_var_cart,{method=>'l'});
+# $plot_var_cart = $plot_var_new->map($tu x $ts,$plot_var_cart,{method=>'l'});
 
-wfits $plot_var_cart, "$filename.fits";
+# Transpose and rotate 90 degrees
+wfits transpose($plot_var_cart)->map(t_linear(rot=>-90)), "$filename.fits";
+
+# wfits $plot_var_cart, "$filename.fits";
 # $plot_var->wfits("$filename.fits");
-

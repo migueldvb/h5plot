@@ -5,6 +5,7 @@
 sub read_flash {
    $filename = shift;
 #    my $filename = "/home/miguel/runs/mako/V4046-cart/V4046-cart_hdf5_plt_cnt_0050";
+
 # check if the file exists
    open ($input,"<$filename") || die "$filename does not exist\n";
    close ("$input");
@@ -119,8 +120,9 @@ sub read_flash {
       my $dataset9 = $hdfFile->dataset('velx');
       $velx = $dataset9->get();
 
-      my $dataset10 = $hdfFile->dataset('vely');
-      $vely = $dataset10->get();
+      $vely = $hdfFile->dataset('vely')->get() if ($ndim > 1);
+
+      $velz = $hdfFile->dataset('velz')->get() if ($ndim == 3);
    }
 
 # find the minimum and maximum refinement levels of the good data
@@ -211,6 +213,7 @@ sub read_flash {
       $plot_var_3d = zeroes("$nx","$ny","$nz");
       $temp_velx = zeroes("$nx","$ny","$nz");
       $temp_vely = zeroes("$nx","$ny","$nz");
+      $temp_velz = zeroes("$nx","$ny","$nz");
    }
 # define the uniform arrays
 #    if (($plane == 0) or (!$plane)) {
