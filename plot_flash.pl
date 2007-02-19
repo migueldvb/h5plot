@@ -15,7 +15,7 @@ use Math::Trig qw [pi];
 
 # Parse options from command line 
 my $ns = 32;
-my $dist = 70.;
+my $dist = 1.;
 
 GetOptions ("log"   => \$log_mode,
            "polar"  => \$polar_mode,
@@ -37,6 +37,7 @@ GetOptions ("log"   => \$log_mode,
            "xzoom=f{2}"=> \@xcoord,
            "yzoom=f{2}"=> \@ycoord,
            "rot=f"  => \$rot,
+           "nbody"  => \$nbody,
            "save=s" => \$f_name,
            "help"   => \$help);
 
@@ -630,6 +631,17 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
       } else {
          $cgrid2bin = plAlloc2dGrid ($rarr_bin, $phiarr_bin);
          plvect ($velx_bin, $vely_bin , 0, \&pltr2, $cgrid2bin);
+      }
+   }
+
+   if ($nbody) {
+      $n_body_file = $filename;
+      $n_body_file =~ s/hdf5/nbdy/;
+      $n_body_file =~ s/cnt_//;
+      read_nbody($n_body_file);
+      if ($cart_mode) {
+         plpoin($x_body,$y_body,1);
+         plpoin(0,0,2);
       }
    }
 
