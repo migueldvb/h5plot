@@ -48,6 +48,7 @@ sub read_flash {
    $geometry =~ s/^.*?\"(\w*) *\"$/$1/;
 
 # read simulation parameters using h5dump
+# compound datatypes are not supported by PDL-IO-HDF5
    my @simparams = `h5dump -d "simulation parameters" $filename | egrep -v "[{};]"`;
    $i = 0;
    foreach (@simparams) {

@@ -20,7 +20,7 @@ my $dist = 1.;
 GetOptions ("log"   => \$log_mode,
            "polar"  => \$polar_mode,
            "cart"   => \$cart_mode,
-           "png=s"  => \$png_mode,
+           "png"    => \$png_mode,
            "var=s"  => \$var,
            "vect"   => \$vect_mode,
            "block"  => \$block_mode,
@@ -36,6 +36,7 @@ GetOptions ("log"   => \$log_mode,
            "scale=f{2}"=> \@scale,
            "xzoom=f{2}"=> \@xcoord,
            "yzoom=f{2}"=> \@ycoord,
+           "dist=f"    => \$dist,
            "rot=f"  => \$rot,
            "nbody"  => \$nbody,
            "save=s" => \$f_name,
@@ -337,7 +338,8 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    # PLplot
 
    if ($png_mode) {
-      my $fileout="$var$png_mode$number.png";
+#       my $fileout="$var$png_mode$number.png";
+      my $fileout="$var.$number.png";
       $dev = "png";
       plsfnam("$fileout");
       print "Output file: $fileout\n";
@@ -389,8 +391,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
       next;
    }
 
-   if ($pslice) {
-      # take a slice at a given phi
+   if ($pslice) { # take a slice at a given phi
       $var_slice = $plot_var->slice(":,$pslice");
       $xslice = (xvals("$nx")+.5)*$dx_fine + $xrange[0];
    }
@@ -412,10 +413,12 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
       plinit;
       if ($pslice) {
          $tmp = sprintf("%.3f", ($pslice+.5)*$dy_fine/pi);
-         plenv ($xrange[0], $xrange[1], $y0, $y1, 0, 3);
-#          plenv ($xrange[0], 1.1, $y0, 1., 0, 0);
+#          plenv ($xrange[0], $xrange[1], $y0, $y1, 0, 3);
+         $xslice = ($xslice - 1.)*70;
+         plenv (0., 7., -6.4, -4.2, 0, 0);
 #          print "var = $var \n";
-         pllab ("#frr", "$var", "#gf = $tmp #gp");
+#          pllab ("#frr", "$var", "#gf = $tmp #gp");
+            pllab ("#frr [AU]", "log(#gS)", "");
 #          if ($var eq "dens") {
 #             pllab ("#frr", "#gS", "#gf = $tmp #gp");
 #          } elsif ($var eq "velx") {
@@ -434,6 +437,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
       } else {
 #          plcol0(($j+1)%14);
          plline($xslice,$var_slice);
+         plline($xslice,sqrt(1.e-2/$xslice));
 #          plline($xslice,$y1*(($xrange[0]+.5*$dx_fine)/$xslice));
       }
       plend;
@@ -458,6 +462,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    plscol0 (1,0,0,0);
    my $ncols = 128;  # set when PALETTE set
 
+   plspage(0,0,800,800,0,0) if ($cart_mode);
    plinit;
    cmap1_init();
 
@@ -609,25 +614,25 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
       print "Plot vectors \n";
       $nrv = 30 if (! $nrv);
       $nav = 40 if (! $nav);
-      $dr = ($xmax-$xmin)/($nrv-1.);
-      $dphi = 2.*pi/($nav-1.);
+      $dr = $dist*($xmax-$xmin)/($nrv-1.);
+      $dphi = 2.*pi/($nav);
       $velx_bin = zeroes $nrv,$nav;
       $vely_bin = zeroes $nrv,$nav;
       $rarr_bin = (sequence($nrv))->dummy(1,$nav);
-      $rarr_bin = $xmin + $dr*$rarr_bin;
+      $rarr_bin = $dist*$xmin + $dr*$rarr_bin;
       $phiarr_bin = (sequence($nav))->dummy(0,$nrv);
       $phiarr_bin = -pi + $dphi*$phiarr_bin;
       # rebin the velocities
-      rescale2d($temp_velx,$velx_bin);
+      rescale2d($dist*$temp_velx,$velx_bin);
 #       $velx_bin = $temp_velx->map(t_identity, $velx_bin, {b=>'e'});
-      rescale2d($temp_vely, $vely_bin);
+      rescale2d($dist*$temp_vely, $vely_bin);
 #       $vely_bin = $temp_vely->map(t_identity, $vely_bin, {b=>'e'});
       if ($cart_mode) {
          $velxtmp = $velx_bin*cos($phiarr_bin) - $vely_bin*sin($phiarr_bin);
          $velytmp = $velx_bin*sin($phiarr_bin) + $vely_bin*cos($phiarr_bin);
          $cgrid2bin = plAlloc2dGrid ($rarr_bin * cos ($phiarr_bin),
             $rarr_bin * sin ($phiarr_bin));
-         plvect ($velxtmp, $velytmp, .3, \&pltr2, $cgrid2bin);
+         plvect ($velxtmp, $velytmp, 0.3, \&pltr2, $cgrid2bin);
       } else {
          $cgrid2bin = plAlloc2dGrid ($rarr_bin, $phiarr_bin);
          plvect ($velx_bin, $vely_bin , 0, \&pltr2, $cgrid2bin);
@@ -666,7 +671,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    # make color bar
 #    if ($zmin != $zmax) {
    if (abs($zmin-$zmax) > abs($zmax)*1.e-8) {
-      plvpor(0.15, 0.9, 0.03, 0.05);
+      plvpor(0.1, 0.92, 0.03, 0.05);
       plwind($zmin, $zmax, 0.,1.);
 
       @box=($zmin, $zmax, 0., 1.);
