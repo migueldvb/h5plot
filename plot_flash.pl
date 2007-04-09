@@ -15,7 +15,7 @@ use Math::Trig qw [pi];
 
 # Parse options from command line 
 my $ns = 32;
-my $dist = 1.;
+my $dist = 70.;
 
 GetOptions ("log"   => \$log_mode,
            "polar"  => \$polar_mode,
@@ -481,8 +481,8 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 #          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
          plwind($xmin, $xmax, $ymin, $ymax);
 #          plwind(-40, 40, -40, 40);
-         pllab ("#fr$abscissa [R#dH#u]", "#fr$ord [R#dH#u]", "#frt = $time3f");
-#          pllab ("#frx / a", "#fry / a", "#frt = $time3f");
+#          pllab ("#fr$abscissa [R#dH#u]", "#fr$ord [R#dH#u]", "#frt = $time3f");
+         pllab ("#frx / a", "#fry / a", "#frt = $time3f");
       } else {
          plvpor(0.2, 0.9, 0.2, 0.9);
 #          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
@@ -501,16 +501,14 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
             $shedge, $fill_width, $cont_color, $cont_width, 0, 0, 0, 0);
       }
    } elsif ($cart_mode) {
-   #    plenv (-$xrange[1], $xrange[1], -$xrange[1], $xrange[1], 0, 0);
-   #    plvpor(0.2, 0.9, 0.1, 0.9);
+#       plenv (-$xrange[1], $xrange[1], -$xrange[1], $xrange[1], 0, 0);
+#       plvpor(0.2, 0.9, 0.1, 0.9);
       ($zmin, $zmax) =  f2mnmx ($plot_var_long);
       ($zmin, $zmax) =  @scale if (@scale);
       $shedge = $zmin + ($zmax - $zmin) * sequence ($ns) / ($ns-1.);
-   
+ 
       plvpas(0.2, 0.9, 0.2, 0.9, 1);
-      $tmp = pi/2.;
-      print "$yrange[1] $tmp \n";
-      if ($xrange[1] <= 1.1*pi/2.) {
+      if ($xrange[1] <= 0.1*pi/2.) {
          $x_min = $xrange[0]*cos($yrange[1]);
          $y_min = $xrange[1]*cos($yrange[1]);
          print "$x_min $y_min \n";
