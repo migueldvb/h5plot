@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # plot FLASH HDF5 data
-# usage: ./read_hdf5.pl <hdf5_file>
+# usage: ./plot_flash.pl <hdf5_file>
 
 use PDL;
 use PDL::AutoLoader;
@@ -13,10 +13,11 @@ use Getopt::Long qw [:config pass_through];
 use Text::Wrap;
 use Math::Trig qw [pi];
 
-# Parse options from command line 
 my $ns = 32;
-my $dist = 70.;
+# my $dist = .041;
+my $dist = 1.;
 
+# Parse options from command line 
 GetOptions ("log"   => \$log_mode,
            "polar"  => \$polar_mode,
            "cart"   => \$cart_mode,
@@ -240,6 +241,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
       }
 #       print $z."\n";
    }
+
 # Move the grid in azimuth
    if ($rot) {
       # calculate azimuthal position of planet
@@ -263,7 +265,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
          $plot_var_new->slice(":,$tmp1:$ny1") .= $plot_var->slice(":,0:$tmp2");
       } else {
          $pl_ind = $ny/2 + $pl_ind;
-         $tmp1 = 3*$ny/2-$pl_ind;
+         $tmp1 = 3*$ny/2 - $pl_ind;
          $tmp2 = $pl_ind-$ny/2-1;
          print "= $tmp1 $tmp2 \n";
          $plot_var_new->slice(":,0:$tmp1") .= $plot_var->slice(":,$tmp2:$ny1");
@@ -334,6 +336,9 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    
    $plot_var->inplace->log10 if ($log_mode);
    $plot_var_long->inplace->log10 if ($log_mode);
+#    $plot_var = $plot_var/($dist * ((xvals("$nx")+.5)*$dx_fine + $xmin)->dummy(1,"$ny"))**(-1.5);
+#    $plot_var_long = $plot_var_long/$x**(-1.5);
+
 
    # PLplot
 
@@ -352,7 +357,8 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    # calculate time in orbits
    $orbit = $time/2/pi;
    $orbit = sprintf("%.3f", $orbit);
-   $time3f = sprintf("%.3f", $time*2*pi);
+#    $time3f = sprintf("%.3f", $time*2*pi);
+   $time3f = sprintf("%.3f", $time);
    print "t = $orbit orbits\n";
 
    cmap1_init();
@@ -452,6 +458,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    print "minimum: $zmin, maximum: $zmax \n";
 
    if (@scale) {
+      $indcol = (@scale[1] - $zmin) / ($zmax - $zmin);
       ($zmin, $zmax) =  @scale;
       print "minimum: $zmin, maximum: $zmax \n";
    }
@@ -480,6 +487,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    #       plvpor(0.2, 0.9, 0.2, 0.9);
 #          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
          plwind($xmin, $xmax, $ymin, $ymax);
+#          plwind(-2,2,-2,2);
 #          plwind(-40, 40, -40, 40);
 #          pllab ("#fr$abscissa [R#dH#u]", "#fr$ord [R#dH#u]", "#frt = $time3f");
          pllab ("#frx / a", "#fry / a", "#frt = $time3f");
@@ -487,6 +495,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
          plvpor(0.2, 0.9, 0.2, 0.9);
 #          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
          plwind($xmin, $xmax, $ymin, $ymax);
+#          plwind(-2,2,-2,2);
          pllab ("#frr", "#frAzimuth", "#frt = $orbit");
       }
       if ($zmin == $zmax) {
@@ -496,6 +505,13 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
          $ydomain = pdl[$ymin,$ymax,$ymax,$ymin];
          plfill ($xdomain,$ydomain);
       } else {
+         if (@scale) {
+#             plcol1($indcol);
+            plcol1(1);
+            $xdomain = pdl[$xmin,$xmin,$xmax,$xmax];
+            $ydomain = pdl[$ymin,$ymax,$ymax,$ymin];
+            plfill ($xdomain,$ydomain);
+         }
 #          plshades ($plot_var, $xrange[0], $xrange[1], $yrange[0], $yrange[1],
          plshades ($plot_var, $xmin, $xmax, $ymin, $ymax,
             $shedge, $fill_width, $cont_color, $cont_width, 0, 0, 0, 0);
@@ -513,9 +529,11 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
          $y_min = $xrange[1]*cos($yrange[1]);
          print "$x_min $y_min \n";
          plwind($x_min, $xrange[1], -$y_min, $y_min);
+#          plwind(-2,2,-2,2);
       } else {
 #          plwind(-$xrange[1], $xrange[1], -$xrange[1], $xrange[1]);
          plwind (-$xrange[1]*$dist, $xrange[1]*$dist, -$xrange[1]*$dist, $xrange[1]*$dist)
+#          plwind(-2,2,-2,2);
       }
 #       plwind($xmin, $xmax, $ymin, $ymax);
       pllab ("#frx/AU", "#fry/AU", "#frt = $orbit");
@@ -523,8 +541,8 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 
 # for the first data file with uniform density
       if ($zmin == $zmax) {
-         $x = pdl[-$xrange[1],-$xrange[1],$xrange[1],$xrange[1]];
-         $y = pdl[-$xrange[1],$xrange[1],$xrange[1],-$xrange[1]];
+#          $x = pdl[-$xrange[1],-$xrange[1],$xrange[1],$xrange[1]];
+#          $y = pdl[-$xrange[1],$xrange[1],$xrange[1],-$xrange[1]];
 # plot torus between $xrange[0] and $xrange[1] with color pcol1(0)
          $nseq = 50;
          $xseq = $xrange[1] * cos(2. * pi/$nseq*sequence($nseq + 1));
@@ -540,6 +558,20 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
             $shedge, $fill_width, $cont_color, $cont_width, 0, 0,
             \&pltr2, $cgrid2);
       }
+      # Plot eccentric orbit
+      $ecc = 0.2;
+      $a = 1.*$dist;
+#       $ecc = 0.2;
+#       $a = 6.098*$dist;
+#       $b = $a * sqrt(1.-$ecc**2);
+#       $xtmp = -(1+$ecc)*$a + sequence(1001)*$a/500;
+#       $ytmp = $b * sqrt(1.-($xtmp+$ecc*$a)**2/$a**2);
+      $phitmp = -pi + 2*pi*sequence(1001)/1000;
+      $rtmp = $a * (1. - $ecc**2)/(1. + $ecc*cos($phitmp));
+      $xtmp = $rtmp * cos($phitmp);
+      $ytmp = $rtmp * sin($phitmp);
+#       plline($xtmp,$ytmp);
+#       plline($xtmp,-$ytmp);
    }
 
 # plot streamlines
@@ -666,7 +698,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 
    # pladv(0);
 
-   # make color bar
+   # draw color bar
 #    if ($zmin != $zmax) {
    if (abs($zmin-$zmax) > abs($zmax)*1.e-8) {
       plvpor(0.1, 0.92, 0.03, 0.05);
