@@ -27,6 +27,7 @@ GetOptions ("log"   => \$log_mode,
            "block"  => \$block_mode,
            "stream" => \$stream_mode,
            "prof"   => \$prof_mode,
+           "nobar"  => \$nobar_mode,
            "rslice=i"=> \$rslice,
            "pslice=i"=> \$pslice,
            "ns=i"   => \$ns,
@@ -523,7 +524,11 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
       ($zmin, $zmax) =  @scale if (@scale);
       $shedge = $zmin + ($zmax - $zmin) * sequence ($ns) / ($ns-1.);
  
-      plvpas(0.2, 0.9, 0.2, 0.9, 1);
+      if ($nobar_mode) {
+         plvpas(0.12, 0.96, 0.1, 0.94, 1);
+      } else {
+         plvpas(0.2, 0.9, 0.2, 0.9, 1);
+      }
       if ($xrange[1] <= 0.1*pi/2.) {
          $x_min = $xrange[0]*cos($yrange[1]);
          $y_min = $xrange[1]*cos($yrange[1]);
@@ -700,7 +705,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 
    # draw color bar
 #    if ($zmin != $zmax) {
-   if (abs($zmin-$zmax) > abs($zmax)*1.e-8) {
+   if (abs($zmin-$zmax) > abs($zmax)*1.e-8 & !$nobar_mode) {
       plvpor(0.1, 0.92, 0.03, 0.05);
       plwind($zmin, $zmax, 0.,1.);
 
