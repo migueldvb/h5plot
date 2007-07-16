@@ -22,6 +22,7 @@ GetOptions ("log"   => \$log_mode,
            "polar"  => \$polar_mode,
            "cart"   => \$cart_mode,
            "png"    => \$png_mode,
+           "o=s"    => \$outfile,
            "var=s"  => \$var,
            "vect"   => \$vect_mode,
            "block"  => \$block_mode,
@@ -345,10 +346,14 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 
    if ($png_mode) {
 #       my $fileout="$var$png_mode$number.png";
-      my $fileout="$var.$number.png";
-      $dev = "png";
-      plsfnam("$fileout");
+      if ($outfile) {
+         $fileout=$outfile;
+      } else {
+         $fileout="$var.$number.png";
+      }
       print "Output file: $fileout\n";
+      plsfnam("$fileout");
+      $dev = "png";
       plsdev("$dev");
 #    } else {
 #       plsdev("xwin");
