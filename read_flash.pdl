@@ -212,9 +212,9 @@ sub read_flash {
       $temp_vely = zeroes("$nx","$ny");
    } elsif ($ndim == 3) {
       $plot_var_3d = zeroes("$nx","$ny","$nz");
-      $temp_velx = zeroes("$nx","$ny","$nz");
-      $temp_vely = zeroes("$nx","$ny","$nz");
-      $temp_velz = zeroes("$nx","$ny","$nz");
+      $temp_velx_3d = zeroes("$nx","$ny","$nz");
+      $temp_vely_3d = zeroes("$nx","$ny","$nz");
+      $temp_velz_3d = zeroes("$nx","$ny","$nz");
    }
 # define the uniform arrays
 #    if (($plane == 0) or (!$plane)) {
@@ -301,7 +301,7 @@ sub read_flash {
          $plot_var_3d->slice("$xind:$xend,$yind:$yend,$zind:$zend") .= $sub_array;
       }
 
-      if ($vect_mode || $stream_mode && ($ndim == 2)) {
+      if (($vect_mode || $stream_mode) && ($ndim == 2)) {
          $sub_array = zeroes "$xsubarray", "$ysubarray";
          rescale2d($velx->slice(":,:,0,$cur_blk"),$sub_array);
          $temp_velx->slice("$xind:$xend,$yind:$yend") .= $sub_array ;
@@ -309,6 +309,37 @@ sub read_flash {
          $sub_array = zeroes "$xsubarray", "$ysubarray";
          rescale2d($vely->slice(":,:,0,$cur_blk"),$sub_array);
          $temp_vely->slice("$xind:$xend,$yind:$yend") .= $sub_array ;
+
+      }
+
+      if (($vect_mode || $stream_mode) && ($ndim == 3)) {
+         $tmp_sub_array = zeroes "$xsubarray", "$ysubarray", "$tmpdims[2]";
+         $sub_array = zeroes "$xsubarray", "$ysubarray", "$zsubarray";
+         # Hack to map 3-D arrays exchanging dimensions in $tmp_sub_array
+         $tmp_sub_array = $velx->slice(":,:,:,$cur_blk")->map(t_identity,$tmp_sub_array,{method=>'s',b=>'e'});
+         $tmp_sub_array = $tmp_sub_array->xchg(1,2);
+         $sub_array = $tmp_sub_array->map(t_identity,$sub_array,{method=>'s',b=>'e'});
+         $sub_array = $sub_array->xchg(1,2);
+         $temp_velx_3d->slice("$xind:$xend,$yind:$yend,$zind:$zend") .= $sub_array;
+
+         $tmp_sub_array = zeroes "$xsubarray", "$ysubarray", "$tmpdims[2]";
+         $sub_array = zeroes "$xsubarray", "$ysubarray", "$zsubarray";
+         # Hack to map 3-D arrays exchanging dimensions in $tmp_sub_array
+         $tmp_sub_array = $vely->slice(":,:,:,$cur_blk")->map(t_identity,$tmp_sub_array,{method=>'s',b=>'e'});
+         $tmp_sub_array = $tmp_sub_array->xchg(1,2);
+         $sub_array = $tmp_sub_array->map(t_identity,$sub_array,{method=>'s',b=>'e'});
+         $sub_array = $sub_array->xchg(1,2);
+         $temp_vely_3d->slice("$xind:$xend,$yind:$yend,$zind:$zend") .= $sub_array;
+
+         $tmp_sub_array = zeroes "$xsubarray", "$ysubarray", "$tmpdims[2]";
+         $sub_array = zeroes "$xsubarray", "$ysubarray", "$zsubarray";
+         # Hack to map 3-D arrays exchanging dimensions in $tmp_sub_array
+         $tmp_sub_array = $velz->slice(":,:,:,$cur_blk")->map(t_identity,$tmp_sub_array,{method=>'s',b=>'e'});
+         $tmp_sub_array = $tmp_sub_array->xchg(1,2);
+         $sub_array = $tmp_sub_array->map(t_identity,$sub_array,{method=>'s',b=>'e'});
+         $sub_array = $sub_array->xchg(1,2);
+         $temp_velz_3d->slice("$xind:$xend,$yind:$yend,$zind:$zend") .= $sub_array;
+
       }
    }
 

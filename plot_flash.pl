@@ -78,7 +78,7 @@ plParseOpts (\@ARGV, PL_PARSE_SKIP | PL_PARSE_NOPROGRAM );
 sub stream($pxinit,$pyinit,$dirt) {
    # Read initial position and direction
    my ($pxinit,$pyinit,$dirt) = @_;
-   my $segment_nr = 4000;
+   my $segment_nr = 500;
    my $iter_nr = 100;
    my $i;
    my $j;
@@ -87,8 +87,10 @@ sub stream($pxinit,$pyinit,$dirt) {
    my $dt = 0.01;
    my $drint= 0.01;
 
-   $rx = $xrange[0] +($pxinit+0.5)*$dx_fine;
-   $ry = $yrange[0] +($pyinit+0.5)*$dy_fine;
+#    $rx = $xrange[0] +($pxinit+0.5)*$dx_fine;
+#    $ry = $yrange[0] +($pyinit+0.5)*$dy_fine;
+   $rx = $xmin +($pxinit+0.5)*$dx_fine;
+   $ry = $ymin +($pyinit+0.5)*$dy_fine;
    print "rx,ry = $rx $ry \n";
 
 #    $xpos = pdl[$rx,$rx];
@@ -244,6 +246,26 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 #       print $z."\n";
    }
 
+   if (($vect_mode || $stream_mode) && $ndim == 3) {
+      if ($plane[0] == 0) {
+         $temp_velx = zeroes("$nx","$ny");
+         $temp_vely = zeroes("$nx","$ny");
+         $temp_velx = $temp_velx_3d->slice(":,:,$plane[1]");
+         $temp_vely = $temp_vely_3d->slice(":,:,$plane[1]");
+      } elsif ($plane[0] == 1) {
+         $temp_velx = zeroes("$nx","$nz");
+         $temp_vely = zeroes("$nx","$nz");
+         $temp_velx = $temp_velx_3d->slice(":,$plane[1],:")->clump(2);
+#          $temp_vely = $temp_vely_3d->slice(":,$plane[1],:")->clump(2);
+         $temp_vely = $temp_velz_3d->slice(":,$plane[1],:")->clump(2);
+         print "y = ".$y->index($plane[1])."\n";
+      } elsif ($plane[0] == 2) {
+         $plot_var = zeroes("$ny","$nz");
+         $plot_var = $plot_var_3d->slice("$plane[1],:,:")->clump(2);
+         print "x = ".$x->index($plane[1])."\n";
+      }
+   }
+
 # Move the grid in azimuth
    if ($rot) {
       # calculate azimuthal position of planet
@@ -291,6 +313,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
          $ny = $nz;
          $abscissa = 'x';
          $ord = 'z';
+         print "(n_x,n_z) = ($nx,$ny) \n";
       } elsif ($plane[0] == 2) {
          $xmin = $yrange[0];
          $xmax = $yrange[1];
@@ -300,6 +323,9 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
          $ny = $nz;
          $abscissa = 'y';
          $ord = 'z';
+         print "(n_y,n_z) = ($nx,$ny) \n";
+      } else {
+         print "(n_x,n_y) = ($nx,$ny) \n";
       }
    }
 
@@ -308,7 +334,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 #    $xmin = $xcoord[0] if (($xcoord[0] > $xrange[0]) && ($xcoord[0] < $xrange[1]));
 #    $xmax = $xcoord[1] if (($xcoord[1] < $xrange[1]) && ($xcoord[1] > $xrange[0]));
 #    $ymin = $ycoord[0] if (($ycoord[0] > $yrange[0]) && ($ycoord[0] < $yrange[1]));
-#    $ymax = $ycoord[1] if (($ycoord[1] < $yrange[1]) && ($ycoord[1] < $yrange[0]));
+#    $ymax = $ycoord[1] if (($ycoord[1] < $yrange[1]) && ($ycoord[1] > $yrange[0]));
 #    $ymin = $ycoord[0] if ($ycoord[0]);
 #    $ymax = $ycoord[1] if ($ycoord[1]);
 
@@ -359,7 +385,6 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 #       plsdev("xwin");
    }
 
-   print "(n_x,n_y) = ($nx,$ny) \n";
    # calculate time in orbits
    $orbit = $time/2/pi;
    $orbit = sprintf("%.3f", $orbit);
@@ -476,6 +501,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    my $ncols = 128;  # set when PALETTE set
 
    plspage(0,0,800,800,0,0) if ($cart_mode);
+#          plspage(0,0,800,200,0,0) ;
    plinit;
    cmap1_init();
 
@@ -489,14 +515,17 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    #    plenv ($xrange[0], $xrange[1], $yrange[0], $yrange[1], 0, 0);
    #    plvsta();
       if ($geometry eq "Cartesian") {
-         plvpas(0.2, 0.9, 0.22, 0.9, 1);
    #       plvpor(0.2, 0.9, 0.2, 0.9);
 #          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
+         plvpas(0.2, 0.9, 0.22, 0.9, 1);
+#          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
          plwind($xmin, $xmax, $ymin, $ymax);
+#          plsdiplz($xmin, $xmax, $ymin, $ymax);
 #          plwind(-2,2,-2,2);
 #          plwind(-40, 40, -40, 40);
-#          pllab ("#fr$abscissa [R#dH#u]", "#fr$ord [R#dH#u]", "#frt = $time3f");
-         pllab ("#frx / a", "#fry / a", "#frt = $time3f");
+#          plenv($xmin, $xmax, $ymin, $ymax,1,0);
+         pllab ("#fr$abscissa [R#dH#u]", "#fr$ord [R#dH#u]", "#frt = $orbit");
+#          pllab ("#frx / a", "#fry / a", "#frt = $time3f");
       } else {
          plvpor(0.2, 0.9, 0.2, 0.9);
 #          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
@@ -587,18 +616,17 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 # plot streamlines
    if ($stream_mode) {
       plcol0 (1);
-      for ($i=0;$i<$ny;$i=$i+10) {
-         $tmp = int(0.9/1.9*$nx);
+      for ($i=10;$i<$ny;$i=$i+30) {
+#          $tmp = int(0.9/1.9*$nx);
+         $tmp = $nx/2;
          &stream($tmp,$i,1);
          &stream($tmp,$i,-1);
 #          next if $x($tmp)
 #          $tmp = int(1.5/1.9*$nx);
-#          &stream($tmp,$i,1);
-#          &stream($tmp,$i,-1);
       }
-      for ($i=2;$i<$nx;$i=$i+10) {
-         &stream($i,$ny/2,1);
-         &stream($i,$ny/2,-1);
+      for ($i=0;$i<$nx;$i=$i+50) {
+#          &stream($i,$ny/2,1);
+#          &stream($i,$ny/2,-1);
       }
 #             &stream(40,40,1);
    }
@@ -655,13 +683,14 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
       $nrv = 30 if (! $nrv);
       $nav = 40 if (! $nav);
       $dr = $dist*($xmax-$xmin)/($nrv-1.);
-      $dphi = 2.*pi/($nav);
+#       $dphi = 2.*pi/($nav);
+      $dphi = ($ymax-$ymin)/($nav-1.);
       $velx_bin = zeroes $nrv,$nav;
       $vely_bin = zeroes $nrv,$nav;
       $rarr_bin = (sequence($nrv))->dummy(1,$nav);
       $rarr_bin = $dist*$xmin + $dr*$rarr_bin;
       $phiarr_bin = (sequence($nav))->dummy(0,$nrv);
-      $phiarr_bin = -pi + $dphi*$phiarr_bin;
+      $phiarr_bin = $ymin + $dphi*$phiarr_bin;
       # rebin the velocities
       rescale2d($dist*$temp_velx,$velx_bin);
 #       $velx_bin = $temp_velx->map(t_identity, $velx_bin, {b=>'e'});
@@ -675,7 +704,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
          plvect ($velxtmp, $velytmp, 0.3, \&pltr2, $cgrid2bin);
       } else {
          $cgrid2bin = plAlloc2dGrid ($rarr_bin, $phiarr_bin);
-         plvect ($velx_bin, $vely_bin , 0, \&pltr2, $cgrid2bin);
+         plvect ($velx_bin, $vely_bin , -0.1, \&pltr2, $cgrid2bin);
       }
    }
 
