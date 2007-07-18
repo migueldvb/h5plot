@@ -374,6 +374,8 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 #       my $fileout="$var$png_mode$number.png";
       if ($outfile) {
          $fileout=$outfile;
+      } elsif ($ndim == 3) {
+         $fileout="$var.plane@plane[0]@plane[1].$number.png";
       } else {
          $fileout="$var.$number.png";
       }
