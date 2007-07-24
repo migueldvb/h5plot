@@ -85,7 +85,7 @@ sub stream($pxinit,$pyinit,$dirt) {
 #    my $segment_nr = 40;
 #    my $iter_nr = 10;
    my $dt = 0.01;
-   my $drint= 0.01;
+   my $drint = 0.01;
 
 #    $rx = $xrange[0] +($pxinit+0.5)*$dx_fine;
 #    $ry = $yrange[0] +($pyinit+0.5)*$dy_fine;
@@ -374,10 +374,13 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 #       my $fileout="$var$png_mode$number.png";
       if ($outfile) {
          $fileout=$outfile;
-      } elsif ($ndim == 3) {
-         $fileout="$var.plane@plane[0]@plane[1].$number.png";
       } else {
-         $fileout="$var.$number.png";
+         $fileout=$var;
+         $fileout="$fileout.plane@plane[0]@plane[1]" if ($ndim == 3);
+         $fileout="$fileout.block" if ($block_mode);
+         $fileout="$fileout.vect" if ($vect_mode);
+         $fileout="$fileout.stream" if ($stream_mode);
+         $fileout="$fileout.$number.png";
       }
       print "Output file: $fileout\n";
       plsfnam("$fileout");
@@ -512,20 +515,20 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    my $cont_width = 0;
 
    # make contour plot
-   pladv(0);
+   pladv(0) if (@plane[0] == 0);
    if ($polar_mode || ! $cart_mode) {
    #    plenv ($xrange[0], $xrange[1], $yrange[0], $yrange[1], 0, 0);
    #    plvsta();
       if ($geometry eq "Cartesian") {
    #       plvpor(0.2, 0.9, 0.2, 0.9);
 #          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
-         plvpas(0.2, 0.9, 0.22, 0.9, 1);
-#          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
-         plwind($xmin, $xmax, $ymin, $ymax);
+         if (@plane[0] == 0) {
+            plvpas(0.2, 0.9, 0.22, 0.9, 1);
+            plwind($xmin, $xmax, $ymin, $ymax);
 #          plsdiplz($xmin, $xmax, $ymin, $ymax);
-#          plwind(-2,2,-2,2);
-#          plwind(-40, 40, -40, 40);
-#          plenv($xmin, $xmax, $ymin, $ymax,1,0);
+         } else {
+            plenv($xmin, $xmax, $ymin, $ymax,1,-1);
+         }
          pllab ("#fr$abscissa [R#dH#u]", "#fr$ord [R#dH#u]", "#frt = $orbit");
 #          pllab ("#frx / a", "#fry / a", "#frt = $time3f");
       } else {
