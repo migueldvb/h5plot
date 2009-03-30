@@ -280,6 +280,7 @@ sub read_flash {
       $ysubarray=$scaling*$nyb;
       $zsubarray=$scaling*$nzb;
       @tmpdims = $amr_data->slice(":,:,:,$cur_blk")->dims;
+#       print "$cur_blk $xind $xend $yind $yend\n";
       if ($ndim == 2) {
          $sub_array = zeroes "$xsubarray", "$ysubarray";
          # use map with linear interpolation

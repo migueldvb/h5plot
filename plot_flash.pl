@@ -21,14 +21,15 @@ my $dist = 1.;
 GetOptions ("log"   => \$log_mode,
            "polar"  => \$polar_mode,
            "cart"   => \$cart_mode,
-           "png"    => \$png_mode,
-           "o=s"    => \$outfile,
+#            "png"    => \$png_mode,
+#            "o=s"    => \$outfile,
            "var=s"  => \$var,
            "vect"   => \$vect_mode,
            "block"  => \$block_mode,
            "stream" => \$stream_mode,
            "prof"   => \$prof_mode,
            "nobar"  => \$nobar_mode,
+           "bw"     => \$bw_mode,
            "rslice=i"=> \$rslice,
            "pslice=i"=> \$pslice,
            "ns=i"   => \$ns,
@@ -197,7 +198,8 @@ if (($ARGV[1]) && ($ARGV[1]>=0) ) {
    # FIXME: accept a file name as $ARGV[1]
 #    $end_number = $ARGV[1] =~ /^.*([0-9]{,4})/;
 } else {
-   $end_number = 9999;
+#    $end_number = 9999;
+   $end_number = $file_number;
 }
 die "$end_number should be >= $file_number \n" if ($end_number < $file_number);
 
@@ -376,7 +378,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
          $fileout=$outfile;
       } else {
          $fileout=$var;
-         $fileout="$fileout.plane@plane[0]@plane[1]" if ($ndim == 3);
+         $fileout="$fileout.plane$plane[0]$plane[1]" if ($ndim == 3);
          $fileout="$fileout.block" if ($block_mode);
          $fileout="$fileout.vect" if ($vect_mode);
          $fileout="$fileout.stream" if ($stream_mode);
@@ -505,32 +507,33 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    plscol0 (1,0,0,0);
    my $ncols = 128;  # set when PALETTE set
 
-   plspage(0,0,800,800,0,0) if ($cart_mode);
+   plspage(0,0,800,800,0,0) if ($cart_mode || $geometry eq "Cartesian");
 #          plspage(0,0,800,200,0,0) ;
    plinit;
    cmap1_init();
+   plscolor(0) if ($bw_mode);
 
    my $fill_width = 2;
    my $cont_color = 0;
    my $cont_width = 0;
 
    # make contour plot
-   pladv(0) if (@plane[0] == 0);
+   pladv(0) if ($plane[0] == 0);
    if ($polar_mode || ! $cart_mode) {
    #    plenv ($xrange[0], $xrange[1], $yrange[0], $yrange[1], 0, 0);
    #    plvsta();
       if ($geometry eq "Cartesian") {
    #       plvpor(0.2, 0.9, 0.2, 0.9);
 #          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
-         if (@plane[0] == 0) {
+         if ($plane[0] == 0) {
             plvpas(0.2, 0.9, 0.22, 0.9, 1);
             plwind($xmin, $xmax, $ymin, $ymax);
 #          plsdiplz($xmin, $xmax, $ymin, $ymax);
          } else {
             plenv($xmin, $xmax, $ymin, $ymax,1,-1);
          }
-         pllab ("#fr$abscissa [R#dH#u]", "#fr$ord [R#dH#u]", "#frt = $orbit");
-#          pllab ("#frx / a", "#fry / a", "#frt = $time3f");
+#          pllab ("#fr$abscissa [R#dH#u]", "#fr$ord [R#dH#u]", "#frt = $orbit");
+         pllab ("#frx / a", "#fry / a", "");#"#frt = $time3f");
       } else {
          plvpor(0.2, 0.9, 0.2, 0.9);
 #          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
@@ -553,7 +556,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
             plfill ($xdomain,$ydomain);
          }
 #          plshades ($plot_var, $xrange[0], $xrange[1], $yrange[0], $yrange[1],
-         plshades ($plot_var, $xmin, $xmax, $ymin, $ymax,
+         plshades ($plot_var->slice("-1:0,-1:0"), $xmin, $xmax, $ymin, $ymax,
             $shedge, $fill_width, $cont_color, $cont_width, 0, 0, 0, 0);
       }
    } elsif ($cart_mode) {
@@ -568,7 +571,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
       } else {
          plvpas(0.2, 0.9, 0.2, 0.9, 1);
       }
-      if ($xrange[1] <= 0.1*pi/2.) {
+      if ($xrange[1] <= 0.01*pi/2.) {
          $x_min = $xrange[0]*cos($yrange[1]);
          $y_min = $xrange[1]*cos($yrange[1]);
          print "$x_min $y_min \n";
@@ -621,17 +624,17 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 # plot streamlines
    if ($stream_mode) {
       plcol0 (1);
-      for ($i=10;$i<$ny;$i=$i+30) {
+      for ($i=$ny*.25;$i<$ny*0.75;$i=$i+20) {
 #          $tmp = int(0.9/1.9*$nx);
-         $tmp = $nx/2;
-         &stream($tmp,$i,1);
-         &stream($tmp,$i,-1);
+#          $tmp = $nx/2;
+#          &stream($tmp,$i,1);
+#          &stream($tmp,$i,-1);
 #          next if $x($tmp)
 #          $tmp = int(1.5/1.9*$nx);
       }
-      for ($i=0;$i<$nx;$i=$i+50) {
-#          &stream($i,$ny/2,1);
-#          &stream($i,$ny/2,-1);
+      for ($i=$nx*.25;$i<$nx*.75;$i=$i+5) {
+         &stream($i,$ny/2,1);
+         &stream($i,$ny/2,-1);
       }
 #             &stream(40,40,1);
    }
@@ -709,7 +712,9 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
          plvect ($velxtmp, $velytmp, 0.3, \&pltr2, $cgrid2bin);
       } else {
          $cgrid2bin = plAlloc2dGrid ($rarr_bin, $phiarr_bin);
-         plvect ($velx_bin, $vely_bin , -0.1, \&pltr2, $cgrid2bin);
+         plvect ($velx_bin, $vely_bin , 0, \&pltr2, $cgrid2bin);
+#          $cgrid2bin = plAlloc2dGrid ($x, $y);
+#          plvect ($temp_velx, $temp_vely , 0, \&pltr2, $cgrid2bin);
       }
    }
 
@@ -719,8 +724,10 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
       $n_body_file =~ s/cnt_//;
       read_nbody($n_body_file);
       if ($cart_mode) {
-         plpoin($x_body,$y_body,1);
-         plpoin(0,0,2);
+         for ($i=0;$i<$x_body->nelem;$i++) {
+             plpoin($x_body->($i)*$dist,$y_body->($i)*$dist,2);
+#              plpoin(0,0,2);
+         }
       }
    }
 

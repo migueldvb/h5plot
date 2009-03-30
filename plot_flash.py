@@ -1,23 +1,12 @@
 #!/usr/bin/python
 
-from tables import *
-from numpy import *
-import sys
+import numpy
+import sys, os
+from pylab import *
 from plplot import *
 from scipy import ogrid, mgrid, ndimage
-
-
-def cmap1_init():
-    i = [0.0,    # left boundary
-           1.0]   # right boundary
-    h = [240,    # blue -> green -> yellow ->
-           0]     # -> red
-    l = [0.6, 0.6]
-    s = [0.8, 0.8]
-    plscmap1n (256)
-    plscmap1l(0, i, h, l, s)
-    plscol0 (0,255,255,255)
-    plscol0 (1,0,0,0)
+from tables import *
+# from cmap1_init import *
 
 filename = sys.argv[1]
 h5file = openFile(filename, "r")
@@ -60,29 +49,55 @@ for cur_blk in index_good[0]:
     xend = xind + xspan
     yspan = scaling*nyb
     yend = yind + yspan
-    if scaling > 0:
+    if scaling > 1:
         xgrid,ygrid=mgrid[0:xspan,0:yspan]
-#         coeffs = ndimage.spline_filter(amr_data[cur_blk,0,:,:])
         plot_var[xind:xend,yind:yend] = ndimage.map_coordinates \
-        (amr_data[cur_blk,0,:,:], array([ygrid/scaling, xgrid/scaling]), \
-        prefilter=False)
+        ( amr_data[cur_blk,0,:,:], array([xgrid/scaling, ygrid/scaling] ), \
+        prefilter=False).transpose()
     else:
-        plot_var[xind:xend,yind:yend] = amr_data[cur_blk,0,:,:]
+        plot_var[xind:xend,yind:yend] = amr_data[cur_blk,0,:,:].transpose()
  
 h5file.close()
 
-zmin = min(log(plot_var.flat))
-zmax = max(log(plot_var.flat))
-ns = 16
-shedge = zmin + (zmax - zmin) * (arange(ns))/(ns-1.)
-fill_width = 2
-cont_color = 0
-cont_width = 0
+dist = 70
+r,t = meshgrid(dist*x,y)
+xarr = r*cos(t)
+yarr = r*sin(t)
+ns = 128
+# im = imshow(log(plot_var.transpose()), aspect="auto",\
+#         extent=(xrange[0],xrange[1],yrange[0],yrange[1]))
+# im = contourf(xarr,yarr,log(plot_var.transpose()),ns)
+dist = 0.042
+im = contourf(x*dist,y*dist,log(plot_var.transpose()),ns)
+colorbar(im)
+xlabel("x [AU]")
+ylabel("y [AU]")
+savefig (os.path.basename(filename)+".png")
 
-plsdev("xwin")
-cmap1_init()
-plinit()
-plenv(float(xrange[0]), float(xrange[1]), float(yrange[0]), float(yrange[1]),0,0)
-plshades (log(plot_var), float(xrange[0]), float(xrange[1]), float(yrange[0]), float(yrange[1]), shedge, fill_width, 1)
-# plshades (log(plot_var), .2,2,-3,3, shedge, fill_width, 1)
-plend()
+# zmin = min(log(plot_var.flat))
+# zmax = max(log(plot_var.flat))
+# ns = 64
+# shedge = zmin + (zmax - zmin) * (arange(ns))/(ns-1.)
+# x.shape = (-1,1)
+# xg = x*cos(y)
+# yg = x*sin(y)
+# fill_width = 2
+# cont_color = 0
+# cont_width = 0
+# plsdev("png")
+# plsfnam(os.path.basename(filename)+".png")
+# cmap1_init()
+# plinit()
+# cart=True
+# xmin = float(xrange[0]*70.)
+# if cart:
+#     plenv(-xmin,xmin,-xmin,xmin,1,0)
+#     plshades (log(plot_var), -xmin,xmin,-xmin,xmin, shedge, fill_width, 1, \
+#         pltr2, xg, yg, 2)
+#     pllab("x","y","")
+# else:
+#     plenv(xrange[0], float(xrange[1]), float(yrange[0]), float(yrange[1]),0,0)
+#     plshades (log(plot_var), float(xrange[0]), float(xrange[1]), \
+#         float(yrange[0]), float(yrange[1]), shedge, fill_width, 1)
+# # plshades (log(plot_var), .2,2,-3,3, shedge, fill_width, 1)
+# plend()

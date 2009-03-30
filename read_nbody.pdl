@@ -5,8 +5,11 @@ sub read_nbody {
    my $filename = shift;
    print "Reading $filename \n";
    $time_nbody = rcols $filename,0, { LINES => '0:0' };
-   ($m_body) = rgrep {/M=(.*) *,/} "$filename"; # read mass
-   ($x_body,$y_body,$z_body) = rgrep {/R=(.*), *(.*), *(.*) .*/} "$filename";
-   ($vx_body,$vy_body,$vz_body) = rgrep {/V=(.*), *(.*), *(.*) .*/} "$filename";
+   ($m_body) = rgrep {/\WM *=(.*) *,/} "$filename"; # read mass
+   ($x_body,$y_body,$z_body) = rgrep {/R *=(.*), *(.*), *(.*),/} "$filename";
+   ($vx_body,$vy_body,$vz_body) = rgrep {/V *=(.*), *(.*), *(.*),/} "$filename";
+   $r = pdl($x_body,$y_body,$z_body)->xchg(0,1);
+   $v = pdl($vx_body,$vy_body,$vz_body)->xchg(0,1);
    $r_body = sqrt($x_body**2 + $y_body**2 + $z_body**2);
+   $v2_body = ($vx_body**2 + $vy_body**2 + $vz_body**2);
 }
