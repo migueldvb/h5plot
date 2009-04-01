@@ -213,6 +213,7 @@ if ($ARGV[2]) {
 # find initial density using h5dump
 my $file0 = "$file_string"._."0000";
 my $dens0 = `h5dump -a 'dens/minimum' $file0 | grep "(0)"`;
+# my $dens0 = `h5dump -a 'dens/minimum' $ARGV[0] | grep "(0)"`;
 chomp($dens0);
 # keep the digits after the colon 
 $dens0 =~ s/^.*: *(\d*)\s*/$1/;
@@ -496,7 +497,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
    print "minimum: $zmin, maximum: $zmax \n";
 
    if (@scale) {
-      $indcol = (@scale[1] - $zmin) / ($zmax - $zmin);
+      $indcol = ($scale[1] - $zmin) / ($zmax - $zmin);
       ($zmin, $zmax) =  @scale;
       print "minimum: $zmin, maximum: $zmax \n";
    }
@@ -613,7 +614,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 #       $b = $a * sqrt(1.-$ecc**2);
 #       $xtmp = -(1+$ecc)*$a + sequence(1001)*$a/500;
 #       $ytmp = $b * sqrt(1.-($xtmp+$ecc*$a)**2/$a**2);
-      $phitmp = -pi + 2*pi*sequence(1001)/1000;
+      $phitmp = -&pi() + 2*pi*sequence(1001)/1000;
       $rtmp = $a * (1. - $ecc**2)/(1. + $ecc*cos($phitmp));
       $xtmp = $rtmp * cos($phitmp);
       $ytmp = $rtmp * sin($phitmp);
