@@ -144,7 +144,7 @@ sub stream($pxinit,$pyinit,$dirt) {
          $ycart[1] = $xpos[1]*sin($ypos[1]);
          plline(pdl(@xcart),pdl(@ycart));
       } else {
-         plline(pdl(@xpos),pdl(@ypos));
+         plline(pdl($dist*@xpos),pdl($dist*@ypos));
       }
    }
 }
@@ -538,7 +538,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
       } else {
          plvpor(0.2, 0.9, 0.2, 0.9);
 #          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
-         plwind($xmin, $xmax, $ymin, $ymax);
+         plwind($dist*$xmin, $dist*$xmax, $ymin, $ymax);
 #          plwind(-2,2,-2,2);
          pllab ("#frr", "#frAzimuth", "#frt = $orbit");
       }
@@ -557,7 +557,8 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
             plfill ($xdomain,$ydomain);
          }
 #          plshades ($plot_var, $xrange[0], $xrange[1], $yrange[0], $yrange[1],
-         plshades ($plot_var->slice("-1:0,-1:0"), $xmin, $xmax, $ymin, $ymax,
+#          plshades ($plot_var->slice("-1:0,-1:0"), $dist*$xmin, $dist*$xmax, $ymin, $ymax,
+         plshades ($plot_var, $dist*$xmin, $dist*$xmax, $ymin, $ymax,
             $shedge, $fill_width, $cont_color, $cont_width, 0, 0, 0, 0);
       }
    } elsif ($cart_mode) {
