@@ -8,7 +8,7 @@ from scipy import mgrid, ndimage
 from tables import *
 from optparse import OptionParser
 import matplotlib
-import matplotlib.pyplot as P
+import matplotlib.pyplot as plt
 
 parser = OptionParser()
 
@@ -94,34 +94,34 @@ matplotlib.rcParams['xtick.direction'] = 'out'
 matplotlib.rcParams['ytick.direction'] = 'out'
 
 if options.log: plot_var = numpy.log10(plot_var) # log scale
-if options.polar == False: # polar
+if options.polar == False: # cartesian
 	r,t = numpy.meshgrid(options.dist*x,numpy.append(y,y[-1]+dy_fine))
 	xarr = r*numpy.cos(t)
 	yarr = r*numpy.sin(t)
 	levmin,levmax = numpy.floor(numpy.log10(plot_var.min())), numpy.ceil(numpy.log10(plot_var.min())+1)
 	lev_exp = numpy.arange(levmin,levmax,(levmax-levmin)/options.ns)
 	levs = numpy.power(10, lev_exp)
-	P.contourf(xarr,yarr,numpy.append(plot_var,plot_var[:,0:1],axis=1).transpose(),options.ns)
-# 	P.contourf(xarr,yarr,numpy.append(plot_var,plot_var[:,0:1],axis=1).transpose(),levs,
+	xlim = options.dist*xrange[1]
+	plt.contourf(xarr,yarr,numpy.append(plot_var,plot_var[:,0:1],axis=1).transpose(),options.ns)
+# 	plt.contourf(xarr,yarr,numpy.append(plot_var,plot_var[:,0:1],axis=1).transpose(),levs,
 # 			norm=matplotlib.colors.LogNorm())
 # 			locator=matplotlib.ticker.LogLocator())
-# 	P.pcolormesh(xarr,yarr,plot_var.transpose())
+# 	plt.pcolormesh(xarr,yarr,plot_var.transpose())
 # 			norm=colors.LogNorm())
-	xlim = options.dist*xrange[1]
-	P.axis([-xlim,xlim,-xlim,xlim])
-	P.axis('scaled')
-	P.xlabel("x [AU]")
-	P.ylabel("y [AU]")
-else: # cartesian
-# 	P.contourf(x*options.dist,y,plot_var.transpose(),options.ns)
-# 	P.axis([options.dist*xrange[0],options.dist*xrange[1],yrange[0],yrange[1]])
-	P.imshow(plot_var.transpose(), aspect="auto", interpolation="hanning",
+	plt.axis([-xlim,xlim,-xlim,xlim])
+	plt.axis('scaled')
+	plt.xlabel("x [AU]")
+	plt.ylabel("y [AU]")
+else: # polar
+# 	plt.contourf(x*options.dist,y,plot_var.transpose(),options.ns)
+# 	plt.axis([options.dist*xrange[0],options.dist*xrange[1],yrange[0],yrange[1]])
+	plt.imshow(plot_var.transpose(), aspect="auto", interpolation="hanning",
 	         extent=(options.dist*xrange[0],options.dist*xrange[1],yrange[0],yrange[1]))
-	P.xlabel("r [AU]")
-	P.ylabel("azimuth")
-if options.bar: P.colorbar()
-# if options.vect: P.quiver(x*options.dist,y,velx,vely) # plot arrows
+	plt.xlabel("r [AU]")
+	plt.ylabel("azimuth")
+# if options.bar: plt.colorbar()
+# if options.vect: plt.quiver(x*options.dist,y,velx,vely) # plot arrows
 if options.output:
-	P.savefig (os.path.basename(options.filename)+".png")
+	plt.savefig (os.path.basename(options.filename)+".png")
 else:
-	P.show()
+	plt.show()
