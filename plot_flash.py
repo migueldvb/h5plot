@@ -27,7 +27,9 @@ parser.add_option("-d", "--dist", dest="dist", default=1, type="float", help="di
 parser.add_option("-b", "--bar", action="store_true", default=False, dest="bar", help="Print color bar")
 parser.add_option("-v", "--vect", action="store_true", default=False, dest="vect", help="Print velocity arrows")
 parser.add_option("-e", "--ext", default="png", dest="ext", help="Extension of output file")
-parser.add_option("-x", "--noaxis", action="store_false", default="True", dest="axis", help="Do not print axis")
+parser.add_option("-q", "--equal", action="store_true", default=False, dest="equal", help="Make axis equal")
+parser.add_option("-x", "--noaxis", action="store_false", default=True, dest="axis", help="Do not print axis")
+parser.add_option("--slice", dest="slice", type="float", help="zoom in")
 (options, args) = parser.parse_args()
 
 # Read HDF5 data
@@ -93,12 +95,9 @@ for cur_blk in index_good[0]:
         vely[xind:xend,yind:yend] = vely_data[cur_blk,0,:,:].transpose()
 h5file.close()
 
-matplotlib.rcParams['xtick.direction'] = 'out'
-matplotlib.rcParams['ytick.direction'] = 'out'
-
-# plot contours using pyplot
+# plot contours using matplot.pyplot
 if options.log: plot_var = np.log10(plot_var) # log scale
-if options.polar == False: # cartesian
+if options.polar: # polar to cartesian
     r,t = np.meshgrid(options.dist*x,np.append(y,y[-1]+dy_fine))
     xarr = r*np.cos(t)
     yarr = r*np.sin(t)
@@ -114,24 +113,25 @@ if options.polar == False: # cartesian
 #   plt.pcolormesh(xarr,yarr,plot_var.transpose())
 #           norm=colors.LogNorm())
 #   plt.axis('scaled')
-    plt.axes().set_aspect('equal')
-    if options.axis:
-        plt.axis([-xlim,xlim,-xlim,xlim])
-        plt.xlabel("x [AU]")
-        plt.ylabel("y [AU]")
-    else:
-        plt.axis('off')
-else: # polar
+    plt.axis([-xlim,xlim,-xlim,xlim])
+    plt.xlabel("x [AU]")
+    plt.ylabel("y [AU]")
+else: # do not transform coordinates 
+    matplotlib.rcParams['xtick.direction'] = 'out'
+    matplotlib.rcParams['ytick.direction'] = 'out'
 #   plt.contourf(x*options.dist,y,plot_var.transpose(),options.ns)
 #   plt.axis([options.dist*xrange[0],options.dist*xrange[1],yrange[0],yrange[1]])
-    plt.imshow(plot_var.transpose(), aspect="auto", interpolation="hanning",
-             extent=(options.dist*xrange[0],options.dist*xrange[1],yrange[0],yrange[1]))
+    plt.imshow(plot_var[int(nx*(1.-options.slice)/2.):int(nx*(1+options.slice)/2.),
+        int(ny*(1.-options.slice)/2.):int(ny*(1+options.slice)/2.)].transpose(),
+        aspect="auto", interpolation="hanning",
+        extent=([options.slice*i for i in [options.dist*xrange[0],options.dist*xrange[1],yrange[0],yrange[1]]]))
     plt.xlabel("r [AU]")
     plt.ylabel("azimuth")
+if options.equal: plt.axes().set_aspect('equal')
+if not options.axis: plt.axis('off')
 if options.bar: plt.colorbar()
 # if options.vect: plt.quiver(x*options.dist,y,velx,vely) # plot arrows
 if options.outdir != "." or options.save:
-    plt.savefig(options.outdir+"/"+os.path.basename(options.filename)+"."+options.ext)
-#             bbox_inches="tight")
+    plt.savefig(options.outdir+"/"+os.path.basename(options.filename)+"."+options.ext) # bbox_inches="tight")
 else:
     plt.show()
