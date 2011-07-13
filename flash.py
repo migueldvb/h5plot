@@ -110,6 +110,7 @@ if args.block:
             arc = matplotlib.patches.Arc((0., 0.), 2*x0, 2*x0, 0., np.degrees(y0),
                     np.degrees(y1))
             ax.add_patch(arc)
+            ax.add_patch(matplotlib.patches.Circle((0,0), 2, fc='none'))
         else:
             plt.plot([x0,x0,x1], [y0,y1,y1], 'k')
     if not args.polar: plt.axis(_range)
