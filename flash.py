@@ -44,6 +44,8 @@ parser.add_argument("--block", action="store_true", default=False, dest="block",
 parser.add_argument("--slice", dest="slice", type=float, default=1., help="zoom in")
 parser.add_argument("--fliplr", action="store_true", dest="fliplr", default=False, 
         help="flip left right")
+parser.add_argument("-q", "--equal", action="store_true", default=False,
+        dest="equal", help="Make axis equal")
 args = parser.parse_args()
 
 hdf5 = flashhdf5.FlashHDF5(args.filename)
@@ -57,7 +59,7 @@ _range = [args.slice*args.dist*i for i in xrange+yrange]
 if args.log: plot_var = np.log10(plot_var) # log scale
 if args.thumb: plt.figure(figsize=(5,4))
 
-if args.polar: 
+if args.polar:
     # convert polar to Cartesian coordinates
     r, t = np.meshgrid(args.dist*hdf5.x, np.append(hdf5.y, hdf5.y[-1]+hdf5.dy_fine))
     xarr = r*np.cos(t)
@@ -98,6 +100,7 @@ if args.block:
         plt.plot([x0,x0,x1], [y0,y1,y1], 'k')
     plt.axis(_range)
 
+if args.equal: plt.axes().set_aspect('equal')
 if not args.axis: plt.axis('off')
 if args.bar: plt.colorbar()
 # if args.vect: plt.quiver(x*args.dist,y,velx,vely) # plot arrows
