@@ -55,6 +55,9 @@ xrange = hdf5.xrange
 yrange = hdf5.yrange
 _range = [args.slice*args.dist*i for i in xrange+yrange]
 
+fig = plt.figure()
+ax = fig.add_subplot(111)
+
 # plot contour maps using matplotlib.pyplot
 if args.log: plot_var = np.log10(plot_var) # log scale
 if args.thumb: plt.figure(figsize=(5,4))
@@ -90,15 +93,26 @@ if args.block:
     # find boundaries of current block
     for cur_blk in hdf5.index_good[0]:
         # cur_block has children nodes or is out of range
-        if hdf5.gid[cur_blk,6] > 0 or hdf5.coord[cur_blk,0]<_range[0] \
-            or hdf5.coord[cur_blk,0]>_range[1] or \
-            _range[2]>hdf5.coord[cur_blk,1] or hdf5.coord[cur_blk,1]>_range[3]: continue
+        if hdf5.gid[cur_blk,6] > 0 or \
+                hdf5.coord[cur_blk,0] < _range[0] or \
+                hdf5.coord[cur_blk,0] > _range[1] or \
+                hdf5.coord[cur_blk,1] < _range[2] or \
+                hdf5.coord[cur_blk,1] > _range[3]: continue
         x0 = hdf5.bnd_box[cur_blk,0,0]
         x1 = hdf5.bnd_box[cur_blk,0,1]
         y0 = hdf5.bnd_box[cur_blk,1,0]
         y1 = hdf5.bnd_box[cur_blk,1,1]
-        plt.plot([x0,x0,x1], [y0,y1,y1], 'k')
-    plt.axis(_range)
+        if args.polar:
+            # plot radial spokes
+            plt.plot([x0*np.cos(y0), x1*np.cos(y0)], 
+                    [x0*np.sin(y0), x1*np.sin(y0)], 'k')
+            # plot azimuthal arcs
+            arc = matplotlib.patches.Arc((0., 0.), 2*x0, 2*x0, 0., np.degrees(y0),
+                    np.degrees(y1))
+            ax.add_patch(arc)
+        else:
+            plt.plot([x0,x0,x1], [y0,y1,y1], 'k')
+    if not args.polar: plt.axis(_range)
 
 if args.equal: plt.axes().set_aspect('equal')
 if not args.axis: plt.axis('off')
