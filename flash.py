@@ -74,13 +74,19 @@ if args.polar:
     levs = np.power(10, lev_exp)
     xlim = args.dist*xrange[1]
     plt.pcolormesh(xarr, yarr, plot_var.transpose())
-#           norm=matplotlib.colors.LogNorm())
-#   plt.axis('scaled')
-    plt.axis([-xlim,xlim,-xlim,xlim])
+#             norm=matplotlib.colors.LogNorm())
+#         plt.axis('scaled')
     if args.xz:
+        ax.add_patch(matplotlib.patches.Wedge((0,0), args.dist*2, 45, 135,
+            ec='none', fc='white'))
+        ax.add_patch(matplotlib.patches.Wedge((0,0), args.dist*2, 225, 315,
+            ec='none', fc='white'))
+        ylim = np.sin(np.pi/4.)*xlim
+        plt.axis([-xlim, xlim, -ylim, ylim])
         plt.xlabel("$x$ [AU]")
         plt.ylabel("$z$ [AU]")
     else:
+        plt.axis([-xlim,xlim,-xlim,xlim])
         plt.xlabel("$x$ [AU]")
         plt.ylabel("$y$ [AU]")
 #         plt.xlabel("$x$ [R$_{\odot}$]")
