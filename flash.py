@@ -45,7 +45,9 @@ parser.add_argument("--slice", dest="slice", type=float, default=1., help="zoom 
 parser.add_argument("--fliplr", action="store_true", dest="fliplr", default=False, 
         help="flip left right")
 parser.add_argument("-q", "--equal", action="store_true", default=False,
-        dest="equal", help="Make axis equal")
+        dest="equal", help="Make axes equal")
+parser.add_argument("--xz", action="store_true", default=False, dest="xz",
+        help="Plot xz plane")
 args = parser.parse_args()
 
 hdf5 = flashhdf5.FlashHDF5(args.filename)
@@ -75,8 +77,14 @@ if args.polar:
 #           norm=matplotlib.colors.LogNorm())
 #   plt.axis('scaled')
     plt.axis([-xlim,xlim,-xlim,xlim])
-    plt.xlabel("$x$ [R$_{\odot}$]")
-    plt.ylabel("$y$ [R$_{\odot}$]")
+    if args.xz:
+        plt.xlabel("$x$ [AU]")
+        plt.ylabel("$z$ [AU]")
+    else:
+        plt.xlabel("$x$ [AU]")
+        plt.ylabel("$y$ [AU]")
+#         plt.xlabel("$x$ [R$_{\odot}$]")
+#         plt.ylabel("$y$ [R$_{\odot}$]")
     plt.axes().set_aspect('equal')
 else: # do not transform coordinates 
     matplotlib.rcParams['xtick.direction'] = 'out'
