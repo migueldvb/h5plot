@@ -12,7 +12,11 @@ class FlashHDF53D(object):
         self.filename = filename
 
     def get_var(self, var):
-        """Interpolate data to a uniform grid"""
+        """
+        Interpolate data to a uniform grid
+
+        This method is ported from an IDL routine in FLASH2.5
+        """
         h5file = tables.openFile(self.filename, "r")
         print "opening file", self.filename
         # Read node data
@@ -24,9 +28,10 @@ class FlashHDF53D(object):
         lrefine = h5file.getNode('/refine level').read()
         self.gid = h5file.getNode('/gid').read()
         # number of cells in each direction
-#         nxb = h5file.getNode('/simulation parameters')[0][4]
-#         nyb = h5file.getNode('/simulation parameters')[0][5]
-        nxb, nyb, nzb = 8, 8, 8
+        nxb = h5file.getNode('/integer scalars')[0][1]
+        nyb = h5file.getNode('/integer scalars')[1][1]
+        nzb = h5file.getNode('/integer scalars')[2][1]
+#         nxb, nyb, nzb = 8, 8, 8
         h5file.close()
 
         self.index_good = np.where(node_type == 1)
@@ -53,6 +58,7 @@ class FlashHDF53D(object):
         ny = long (ntopy*nyb*2**(lwant-1))
         nz = long (ntopy*nzb*2**(lwant-1))
         plot_var = np.zeros((nx, ny, nz))
+        # face-centered coordinates
         self.x = (np.arange(nx)+.5)*self.dx_fine + self.xrange[0]
         self.y = (np.arange(ny)+.5)*self.dy_fine + self.yrange[0]
         self.z = (np.arange(nz)+.5)*self.dz_fine + self.zrange[0]
