@@ -1,2 +1,24 @@
+* Support for FLASH 3.3
+I get this error message:
+opening file mira_spehrical_hdf5_plt_cnt_0000
+Traceback (most recent call last):
+  File "/home/miguel/project/flash/flash.py", line 54, in <module>
+    plot_var = hdf5.get_var('dens')
+  File "/home/miguel/lib/python/flashhdf5.py", line 100, in get_var
+    plot_data = h5file.getNode('/{0}'.format(var)).read()
+  File "/usr/lib64/python2.7/site-packages/tables/file.py", line 1104, in getNode
+    node = self._getNode(nodePath)
+  File "/usr/lib64/python2.7/site-packages/tables/file.py", line 1048, in _getNode
+    node = self.root._g_loadChild(nodePath)
+  File "/usr/lib64/python2.7/site-packages/tables/group.py", line 1188, in _g_loadChild
+    node_type = self._g_checkHasChild(childName)
+  File "/usr/lib64/python2.7/site-packages/tables/group.py", line 446, in _g_checkHasChild
+    % (self._v_pathname, name))
+tables.exceptions.NoSuchNodeError: group ``/`` does not have a child named ``/dens``
+Closing remaining open files: mira_spehrical_hdf5_plt_cnt_0000... done
+The new format in FLASH3.3 should be the same. It seems that the dens variable
+may not be included in the first plotfile. 
+
+* Plot contours of slices in 3D simulations
 
 * Plot Roche lobe
