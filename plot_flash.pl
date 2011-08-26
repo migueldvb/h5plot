@@ -79,13 +79,13 @@ plParseOpts (\@ARGV, PL_PARSE_SKIP | PL_PARSE_NOPROGRAM );
 sub stream($pxinit,$pyinit,$dirt) {
    # Read initial position and direction
    my ($pxinit,$pyinit,$dirt) = @_;
-   my $segment_nr = 500;
-   my $iter_nr = 100;
+   my $segment_nr = 5000;
+   my $iter_nr = 1000;
    my $i;
    my $j;
 #    my $segment_nr = 40;
 #    my $iter_nr = 10;
-   my $dt = 0.01;
+   my $dt = 1;
    my $drint = 0.01;
 
 #    $rx = $xrange[0] +($pxinit+0.5)*$dx_fine;
@@ -534,7 +534,7 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
             plenv($xmin, $xmax, $ymin, $ymax,1,-1);
          }
 #          pllab ("#fr$abscissa [R#dH#u]", "#fr$ord [R#dH#u]", "#frt = $orbit");
-         pllab ("#frx / a", "#fry / a", "");#"#frt = $time3f");
+         pllab ("#frx ", "#fry ", "");#"#frt = $time3f");
       } else {
          plvpor(0.2, 0.9, 0.2, 0.9);
 #          plwind($xrange[0], $xrange[1], $yrange[0], $yrange[1]);
@@ -626,17 +626,17 @@ for ($j=$file_number;$j<=$end_number;$j=$j+$step) {
 # plot streamlines
    if ($stream_mode) {
       plcol0 (1);
-      for ($i=$ny*.25;$i<$ny*0.75;$i=$i+20) {
+      for ($i=$ny*.25;$i<$ny*0.75;$i=$i+500) {
 #          $tmp = int(0.9/1.9*$nx);
-#          $tmp = $nx/2;
-#          &stream($tmp,$i,1);
-#          &stream($tmp,$i,-1);
-#          next if $x($tmp)
+          $tmp = $nx*.5;
+          &stream($tmp,$i,1);
+          &stream($tmp,$i,-1);
+#          next if $x($tmp);
 #          $tmp = int(1.5/1.9*$nx);
       }
-      for ($i=$nx*.25;$i<$nx*.75;$i=$i+5) {
-         &stream($i,$ny/2,1);
-         &stream($i,$ny/2,-1);
+      for ($i=$nx*.25;$i<$nx*.75;$i=$i+50) {
+#         &stream($i,$ny/2,1);
+#         &stream($i,$ny/2,-1);
       }
 #             &stream(40,40,1);
    }
