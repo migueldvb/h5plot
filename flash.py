@@ -60,15 +60,6 @@ _range = [args.slice*args.dist*i for i in xrange+yrange]
 fig = plt.figure()
 ax = fig.add_subplot(111)
 
-peak = plot_var.max()
-print peak
-mask = np.where(plot_var > 0.4*peak)
-mask2 = np.where(plot_var[100:-100,:] > 5e-2*peak)
-plot_var[100:-100,:][np.where(plot_var[100:-100,:] > 1e-2*peak)] = 10**(-6.20)
-# plot_var[np.where(plot_var > 1.8e-2*peak)] = 1.8e-2*peak
-plot_var[100:-100,:][mask2] = 10**(-6.1)
-plot_var[mask] = 1.8e-2*peak
-
 # plot contour maps using matplotlib.pyplot
 if args.log: plot_var = np.log10(plot_var) # log scale
 if args.thumb: plt.figure(figsize=(5,4))
