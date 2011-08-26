@@ -1,5 +1,6 @@
 #!/usr/bin/python
-"""Plot FLASH HDF5 data using matplotlib
+"""
+Plot FLASH HDF5 data using matplotlib
 
 Examples
 --------
@@ -50,19 +51,21 @@ parser.add_argument("--xz", action="store_true", default=False, dest="xz",
         help="Plot xz plane")
 args = parser.parse_args()
 
+# Read HDF5 data file
 hdf5 = flashhdf5.FlashHDF5(args.filename)
 plot_var = hdf5.get_var('dens')
 nx, ny = plot_var.shape
 xrange = hdf5.xrange
 yrange = hdf5.yrange
+# convert to real coordinates
 _range = [args.slice*args.dist*i for i in xrange+yrange]
 
+# plot contour maps using matplotlib.pyplot
 fig = plt.figure()
 ax = fig.add_subplot(111)
 
-# plot contour maps using matplotlib.pyplot
 if args.log: plot_var = np.log10(plot_var) # log scale
-if args.thumb: plt.figure(figsize=(5,4))
+if args.thumb: plt.figure(figsize=(5,4)) # thumbnail output
 
 if args.polar:
     # convert polar to Cartesian coordinates
@@ -103,7 +106,7 @@ else: # do not transform coordinates
     plt.xlabel("r [R$_{\odot}$]")
     plt.ylabel("$\phi$ [${\pi}$]")
 
-if args.block:
+if args.block: # Print grid structure
     # find boundaries of current block
     for cur_blk in hdf5.index_good[0]:
         # cur_block has children nodes or is out of range
