@@ -4,14 +4,14 @@ Plot FLASH HDF5 data using matplotlib and mayavi
 
 Examples
 --------
->>> flash.py -f mira-wind-r20AU_hdf5_plt_cnt_0090
+>>> flash-3D.py -f ~/FLASH/FLASH3.3/runs/Sedov/sedov_hdf5_chk_0005
 """
 
 from argparse import ArgumentParser
 import numpy as np
 import matplotlib.pyplot as plt
 import flashhdf5
-# from mayavi import mlab
+from mayavi import mlab
 
 def sph2cart(r, theta, phi):
     """convert spherical to Cartesian coordinates"""
@@ -37,26 +37,26 @@ args = parser.parse_args()
 # Read 3D data file
 hdf5 = flashhdf5.FlashHDF53D(args.filename)
 plot_var = hdf5.get_var('dens')
-print plot_var.shape
+# print plot_var.shape
 
 if args.log: plot_var = np.log10(plot_var) # log scale
 
 # convert spherical to Cartesian coordinates
-r, phi = np.meshgrid(hdf5.x, hdf5.z)
-x, y = r*np.cos(phi), r*np.sin(phi)
-plt.pcolormesh(x, y, plot_var[:,20,:].transpose())
-plt.colorbar()
-plt.show()
+# r, phi = np.meshgrid(hdf5.x, hdf5.z)
+# x, y = r*np.cos(phi), r*np.sin(phi)
+# plt.pcolormesh(x, y, plot_var[:,20,:].transpose())
+# plt.colorbar()
+# plt.show()
 
-# mlab.contour3d(plot_var)
-# mlab.pipeline.volume(mlab.pipeline.scalar_field(plot_var), vmin=0.2, vmax=0.8)
+mlab.contour3d(plot_var)
+mlab.pipeline.volume(mlab.pipeline.scalar_field(plot_var), vmin=0.2, vmax=0.8)
 # mlab.surf(dens, warp_scale="auto")
-# mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(dens))
+# mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(dens),
 #                                     plane_orientation='x_axes',
 #                                     slice_index=40)
-# mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(plot_var),
-#                                     plane_orientation='y_axes',
-#                                     slice_index=20)
-# mlab.outline()
-# mlab.savefig('Mira.png', size=(400,300))
-# mlab.show()
+mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(plot_var),
+                                    plane_orientation='y_axes',
+                                    slice_index=20)
+mlab.outline()
+mlab.savefig('Mira.png', size=(400,300))
+mlab.show()
