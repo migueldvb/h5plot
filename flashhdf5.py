@@ -24,12 +24,11 @@ class FlashHDF53D(object):
         print("opening file", self.filename)
         # Read node data
         self.coord = self.h5file.getNode('/coordinates').read()
-        size = self.h5file.getNode('/block size').read()
+        self.ndim = self.coord[1]
         self.bnd_box = self.h5file.getNode( '/bounding box').read()
         plot_data = self.h5file.getNode('/{0}'.format(var)).read()
-        node_type = self.h5file.getNode('/node type').read()
-        lrefine = self.h5file.getNode('/refine level').read()
-        self.gid = self.h5file.getNode('/gid').read()
+        self.node_type = self.h5file.getNode('/node type').read()
+        self.lrefine = self.h5file.getNode('/refine level').read()
         # number of cells in each direction
         try:
             nxb = self.h5file.getNode('/integer scalars')[0][1]
@@ -42,9 +41,9 @@ class FlashHDF53D(object):
             nzb = self.h5file.getNode('/simulation parameters')[0]['nzb']
 #         nxb, nyb, nzb = 8, 8, 8
 
-        self.index_good = np.where(node_type == 1)
-        lwant = max(lrefine[self.index_good])
-        top_blocks = np.where(lrefine == 1)
+        self.index_good = np.where(self.node_type == 1)
+        lwant = max(self.lrefine[self.index_good])
+        top_blocks = np.where(self.lrefine == 1)
         self.xrange = [min(self.bnd_box[:,0,0]), max(self.bnd_box[:,0,1])]
         self.yrange = [min(self.bnd_box[:,1,0]), max(self.bnd_box[:,1,1])]
         self.zrange = [min(self.bnd_box[:,2,0]), max(self.bnd_box[:,2,1])]
@@ -73,7 +72,7 @@ class FlashHDF53D(object):
 
         # loop through good blocks
         for cur_blk in self.index_good[0]:
-            scaling = 2**(lwant - lrefine[cur_blk])
+            scaling = 2**(lwant - self.lrefine[cur_blk])
             # find out where the master array should live
             xind = np.where(self.x > self.bnd_box[cur_blk,0,0])
             xind = xind[0][0]
@@ -114,7 +113,7 @@ class FlashHDF52D(FlashHDF53D):
         self.bnd_box = self.h5file.getNode( '/bounding box').read()
         plot_data = self.h5file.getNode('/{0}'.format(var)).read()
         node_type = self.h5file.getNode('/node type').read()
-        lrefine = self.h5file.getNode('/refine level').read()
+        self.lrefine = self.h5file.getNode('/refine level').read()
         self.gid = self.h5file.getNode('/gid').read()
         # number of cells in each direction
         try:
@@ -126,8 +125,8 @@ class FlashHDF52D(FlashHDF53D):
             nyb = self.h5file.getNode('/simulation parameters')[0]['nyb']
 
         self.index_good = np.where(node_type == 1)
-        lwant = max(lrefine[self.index_good])
-        top_blocks = np.where(lrefine == 1)
+        lwant = max(self.lrefine[self.index_good])
+        top_blocks = np.where(self.lrefine == 1)
         self.xrange = [min(self.bnd_box[:,0,0]), max(self.bnd_box[:,0,1])]
         self.yrange = [min(self.bnd_box[:,1,0]), max(self.bnd_box[:,1,1])]
         # find the number of level 1 blocks whose lower y coord is the minimum
@@ -149,7 +148,7 @@ class FlashHDF52D(FlashHDF53D):
 
         # loop through good blocks
         for cur_blk in self.index_good[0]:
-            scaling = 2**(lwant - lrefine[cur_blk])
+            scaling = 2**(lwant - self.lrefine[cur_blk])
             # find out where the master array should live
             xind = np.where(self.x > self.bnd_box[cur_blk,0,0])
             xind = xind[0][0]
