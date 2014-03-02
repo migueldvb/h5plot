@@ -35,6 +35,8 @@ parser.add_option("--block", action="store_true", default=False, dest="block",
 parser.add_option("--slice", dest="slice", type="float", default=1, help="zoom in")
 (options, args) = parser.parse_args()
 
+sys.exit("Deprecated script")
+
 def stream(pxinit,pyinit,dirt):
 # Read initial position and direction
     segment_nr = 4e2
