@@ -159,14 +159,13 @@ class FlashHDF52D(FlashHDF53D):
             xend = xind + xspan
             yspan = scaling*nyb
             yend = yind + yspan
-            print(scaling, lwant, lrefine[cur_blk])
             if scaling > 1:
                 # Map array data by interpolation
                 xgrid, ygrid = mgrid[0:xspan, 0:yspan]
                 plot_var[xind:xend, yind:yend] = \
                 ndimage.map_coordinates(plot_data[cur_blk,0,:,:],
                         np.array([xgrid/scaling, ygrid/scaling] ),
-                        prefilter=False).transpose()
+                        mode='nearest', prefilter=False).transpose()
             else:
                 plot_var[xind:xend,yind:yend] = plot_data[cur_blk,0,:,:].transpose()
         return plot_var
