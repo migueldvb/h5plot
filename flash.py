@@ -52,7 +52,7 @@ parser.add_argument("--xz", action="store_true", default=False, dest="xz",
 args = parser.parse_args()
 
 # Read HDF5 data file
-hdf5 = flashhdf5.FlashHDF53D(args.filename)
+hdf5 = flashhdf5.FlashHDF52D(args.filename)
 plot_var = hdf5.get_var('dens')
 nx, ny = plot_var.shape
 xrange = hdf5.xrange
@@ -142,3 +142,4 @@ elif args.save:
     plt.savefig(os.path.basename(args.filename)+"."+args.ext) # bbox_inches="tight")
 else:
     plt.show()
+hdf5.close()
