@@ -33,9 +33,10 @@ class FlashHDF53D(object):
             nyb = h5file.getNode('/integer scalars')[1][1]
             nzb = h5file.getNode('/integer scalars')[2][1]
         except tables.exceptions.NoSuchNodeError:
-            nxb = h5file.getNode('/simulation parameters')[0][4]
-            nyb = h5file.getNode('/simulation parameters')[0][5]
-            nzb = h5file.getNode('/simulation parameters')[0][6]
+            # FLASH2.5 simulation parameters record
+            nxb = h5file.getNode('/simulation parameters')[0]['nxb']
+            nyb = h5file.getNode('/simulation parameters')[0]['nyb']
+            nzb = h5file.getNode('/simulation parameters')[0]['nzb']
 #         nxb, nyb, nzb = 8, 8, 8
         h5file.close()
 
