@@ -4,7 +4,7 @@
 from scipy import mgrid, ndimage
 import tables
 import numpy as np
-from StringIO import StringIO
+from io import StringIO
 
 class FlashHDF53D(object):
     """Read FLASH HDF5 data"""
@@ -18,7 +18,7 @@ class FlashHDF53D(object):
         This method is ported from an IDL routine in FLASH2.5
         """
         h5file = tables.openFile(self.filename, "r")
-        print "opening file", self.filename
+        print("opening file", self.filename)
         # Read node data
         self.coord = h5file.getNode('/coordinates').read()
         size = h5file.getNode('/block size').read()
@@ -54,9 +54,9 @@ class FlashHDF53D(object):
         self.dx_fine = (self.xrange[1]-self.xrange[0])/(ntopx*nxb*2**(lwant-1))
         self.dy_fine = (self.yrange[1]-self.yrange[0])/(ntopy*nyb*2**(lwant-1))
         self.dz_fine = (self.zrange[1]-self.zrange[0])/(ntopz*nzb*2**(lwant-1))
-        nx = long (ntopx*nxb*2**(lwant-1))
-        ny = long (ntopy*nyb*2**(lwant-1))
-        nz = long (ntopy*nzb*2**(lwant-1))
+        nx = int(ntopx*nxb*2**(lwant-1))
+        ny = int(ntopy*nyb*2**(lwant-1))
+        nz = int(ntopy*nzb*2**(lwant-1))
         plot_var = np.zeros((nx, ny, nz))
         # face-centered coordinates
         self.x = (np.arange(nx)+.5)*self.dx_fine + self.xrange[0]
@@ -98,7 +98,7 @@ class FlashHDF5:
     def get_var(self, var):
         """Interpolate data to a uniform grid"""
         h5file = tables.openFile(self.filename, "r")
-        print "opening file", self.filename
+        print("opening file", self.filename)
         # Read node data
         self.coord = h5file.getNode('/coordinates').read()
         size = h5file.getNode('/block size').read()
@@ -124,8 +124,8 @@ class FlashHDF5:
         ntopy = ntopy[0].size
         self.dx_fine = (self.xrange[1]-self.xrange[0])/(ntopx*nxb*2**(lwant-1))
         self.dy_fine = (self.yrange[1]-self.yrange[0])/(ntopy*nyb*2**(lwant-1))
-        nx = long (ntopx*nxb*2**(lwant-1))
-        ny = long (ntopy*nyb*2**(lwant-1))
+        nx = int(ntopx*nxb*2**(lwant-1))
+        ny = int(ntopy*nyb*2**(lwant-1))
         plot_var = np.zeros((nx,ny))
         self.x = (np.arange(nx)+.5)*self.dx_fine + self.xrange[0]
         self.y = (np.arange(ny)+.5)*self.dy_fine + self.yrange[0]

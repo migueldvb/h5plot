@@ -106,7 +106,7 @@ def get_velocity(rxg,ryg):
 
 # Read HDF5 data
 h5file = openFile(options.filename, "r")
-print "opening file", options.filename
+print("opening file", options.filename)
 coord = h5file.getNode('/coordinates').read()
 size = h5file.getNode('/block size').read()
 bnd_box = h5file.getNode( '/bounding box').read()
@@ -129,8 +129,8 @@ ntopy = np.where(bnd_box[:,0,0].flat[top_blocks] == xrange[0])
 ntopy = ntopy[0].size
 dx_fine = (xrange[1]-xrange[0])/(ntopx*nxb*2**(lwant-1))
 dy_fine = (yrange[1]-yrange[0])/(ntopy*nyb*2**(lwant-1))
-nx = long (ntopx*nxb*2**(lwant-1))
-ny = long (ntopy*nyb*2**(lwant-1))
+nx = int(ntopx*nxb*2**(lwant-1))
+ny = int(ntopy*nyb*2**(lwant-1))
 plot_var = np.zeros((nx,ny))
 velx = np.zeros((nx,ny))
 vely = np.zeros((nx,ny))
