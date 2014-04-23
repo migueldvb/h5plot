@@ -137,7 +137,7 @@ if args.equal: plt.axes().set_aspect('equal')
 if not args.axis: plt.axis('off')
 if args.bar: plt.colorbar()
 # if args.vect: plt.quiver(x*args.dist,y,velx,vely) # plot arrows
-if args.out != "":
+if args.out:
     plt.savefig(args.out)
 elif args.save:
     plt.savefig(os.path.basename(args.filename)+"."+args.ext) # bbox_inches="tight")
