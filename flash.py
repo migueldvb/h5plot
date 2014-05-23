@@ -72,7 +72,7 @@ if args.polar:
     # convert polar to Cartesian coordinates
     r, t = np.meshgrid(args.dist*hdf5.x, np.append(hdf5.y, hdf5.y[-1]+hdf5.dy_fine))
     xarr = r*np.cos(t)
-    yarr = r*np.sin(t)*np.cos(75*np.pi/180)
+    yarr = r*np.sin(t)#*np.cos(80*np.pi/180)
     levmin, levmax = np.floor(np.log10(plot_var.min())), np.ceil(np.log10(plot_var.min())+1)
     lev_exp = np.arange(levmin, levmax, (levmax-levmin)/args.ns)
     levs = np.power(10, lev_exp)
@@ -90,7 +90,7 @@ if args.polar:
         plt.xlabel("$x$ [AU]")
         plt.ylabel("$z$ [AU]")
     else:
-#         plt.axis([-xlim,xlim,-xlim,xlim])
+        plt.axis([-xlim,xlim,-xlim,xlim])
         plt.xlabel("$x$ [AU]")
         plt.ylabel("$y$ [AU]")
 #         plt.xlabel("$x$ [R$_{\odot}$]")
@@ -140,7 +140,8 @@ if args.bar: plt.colorbar()
 if args.out:
     plt.savefig(args.out)
 elif args.save:
-    plt.savefig(os.path.basename(args.filename)+"."+args.ext) # bbox_inches="tight")
+    plt.savefig(os.path.basename(args.filename)+"."+args.ext,
+            transparent=True) # bbox_inches="tight")
 else:
     plt.show()
 hdf5.close()
