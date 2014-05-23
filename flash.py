@@ -59,7 +59,8 @@ nx, ny = plot_var.shape
 xrange = hdf5.xrange
 yrange = hdf5.yrange
 # convert to real coordinates
-_range = [args.slice*args.dist*i for i in xrange+yrange]
+_range = [i for i in xrange+yrange]
+_drange = [args.slice*args.dist*i for i in xrange+yrange]
 
 # plot contour maps using matplotlib.pyplot
 fig = plt.figure()
@@ -103,7 +104,7 @@ else: # do not transform coordinates
     if args.fliplr: plot_var = np.fliplr(plot_var)
     plt.imshow(np.flipud(plot_var[int(nx*(1.-args.slice)/2.):int(nx*(1+args.slice)/2.),
         int(ny*(1.-args.slice)/2.):int(ny*(1+args.slice)/2.)].transpose()),
-        aspect="auto", interpolation="hanning", extent=_range)
+        aspect="auto", interpolation="hanning", extent=_drange)
     plt.xlabel("r [R$_{\odot}$]")
     plt.ylabel("$\phi$ [${\pi}$]")
 
@@ -128,10 +129,12 @@ if args.block: # Print grid structure
             arc = matplotlib.patches.Arc((0., 0.), 2*x0, 2*x0, 0., np.degrees(y0),
                     np.degrees(y1))
             ax.add_patch(arc)
-            ax.add_patch(matplotlib.patches.Circle((0,0), 2, fc='none'))
         else:
             plt.plot([x0,x0,x1], [y0,y1,y1], 'k')
-    if not args.polar: plt.axis(_range)
+    if args.polar:
+        ax.add_patch(matplotlib.patches.Circle((0,0), 4, fc='none'))
+    else:
+        plt.axis(_range)
 
 if args.equal: plt.axes().set_aspect('equal')
 if not args.axis: plt.axis('off')
