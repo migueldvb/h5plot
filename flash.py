@@ -117,8 +117,8 @@ if args.block: # Print grid structure
                 hdf5.coord[cur_blk,0] > _range[1] or \
                 hdf5.coord[cur_blk,1] < _range[2] or \
                 hdf5.coord[cur_blk,1] > _range[3]: continue
-        x0 = hdf5.bnd_box[cur_blk,0,0]
-        x1 = hdf5.bnd_box[cur_blk,0,1]
+        x0 = hdf5.bnd_box[cur_blk,0,0]*args.dist
+        x1 = hdf5.bnd_box[cur_blk,0,1]*args.dist
         y0 = hdf5.bnd_box[cur_blk,1,0]
         y1 = hdf5.bnd_box[cur_blk,1,1]
         if args.polar:
@@ -132,7 +132,7 @@ if args.block: # Print grid structure
         else:
             plt.plot([x0,x0,x1], [y0,y1,y1], 'k')
     if args.polar:
-        ax.add_patch(matplotlib.patches.Circle((0,0), 4, fc='none'))
+        ax.add_patch(matplotlib.patches.Circle((0,0), 4*args.dist, fc='none'))
     else:
         plt.axis(_range)
 
