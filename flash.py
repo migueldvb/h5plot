@@ -11,7 +11,8 @@ import os
 from argparse import ArgumentParser
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+# non-GUI backend
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import flashhdf5
 
@@ -97,7 +98,8 @@ if args.polar:
 #         plt.xlabel("$x$ [R$_{\odot}$]")
 #         plt.ylabel("$y$ [R$_{\odot}$]")
     plt.axes().set_aspect('equal')
-else: # do not transform coordinates 
+else:
+    # do not transform coordinates 
     matplotlib.rcParams['xtick.direction'] = 'out'
     matplotlib.rcParams['ytick.direction'] = 'out'
 #   plt.axis([args.dist*xrange[0],args.dist*xrange[1],yrange[0],yrange[1]])
