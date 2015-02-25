@@ -229,11 +229,11 @@ if options.stream:
         stream(i,ny*.5,-1)
     plt.axis(range)
 if options.outdir != "." or options.save:
-    plt.savefig(options.outdir) # bbox_inches="tight")
-#     if options.outdir.find("png") > 0:
-#         plt.savefig(options.outdir) # bbox_inches="tight")
-#     else:
-#         plt.savefig(options.outdir+"/"+os.path.basename(options.filename)+"."+options.ext) # bbox_inches="tight")
+#     plt.savefig(options.outdir) # bbox_inches="tight")
+    if options.outdir.find("png") > 0:
+        plt.savefig(options.outdir) # bbox_inches="tight")
+    else:
+        plt.savefig(options.outdir+"/"+os.path.basename(options.filename)+"."+options.ext) # bbox_inches="tight")
 else:
     plt.show()
 
