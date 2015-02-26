@@ -25,7 +25,9 @@ parser.add_argument("-c", "--cartesian", action="store_false", dest="polar",
 parser.add_argument("-l", "--log", action="store_true", dest="log", default=True, 
         help="plot in log scale")
 parser.add_argument("--linear", action="store_false", dest="log", help="plot in linear scale")
-parser.add_argument("-n", "--ns", dest="ns", type=int, default=128, help="number of colors")
+parser.add_argument("--ns", dest="ns", type=int, default=128, help="number of colors")
+parser.add_argument("-n", "--dim", type=int, default=2, choices=(2,3),
+        help="number of dimensions")
 parser.add_argument("-f", "--file", dest="filename", help="Input file to read data from")
 parser.add_argument("-s", "--save", action="store_true", default=False, dest="save", 
         help="Save to output image")
@@ -54,8 +56,12 @@ parser.add_argument("--xz", action="store_true", default=False, dest="xz",
 args = parser.parse_args()
 
 # Read HDF5 data file
-hdf5 = flashhdf5.FlashHDF52D(args.filename)
-plot_var = hdf5.get_var('dens')
+if args.dim == 2:
+    hdf5 = flashhdf5.FlashHDF52D(args.filename)
+    plot_var = hdf5.get_var('dens')
+elif args.dim == 3:
+    hdf5 = flashhdf5.FlashHDF53D(args.filename)
+    plot_var = hdf5.get_var('dens')[:,:,0]
 nx, ny = plot_var.shape
 xrange = hdf5.xrange
 yrange = hdf5.yrange
