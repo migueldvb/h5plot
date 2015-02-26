@@ -15,7 +15,7 @@ class FlashHDF53D(object):
     def close(self):
         self.h5file.close()
 
-    def get_var(self, var):
+    def get_var(self, var, zslice=126):
         """
         Interpolate data to a uniform grid
 
@@ -64,7 +64,7 @@ class FlashHDF53D(object):
         nx = int(ntopx*nxb*2**(lwant-1))
         ny = int(ntopy*nyb*2**(lwant-1))
         nz = int(ntopy*nzb*2**(lwant-1))
-        plot_var = np.zeros((nx, ny, nz))
+        plot_var = np.zeros((nx, ny))
         # face-centered coordinates
         self.x = (np.arange(nx)+.5)*self.dx_fine + self.xrange[0]
         self.y = (np.arange(ny)+.5)*self.dy_fine + self.yrange[0]
@@ -80,6 +80,7 @@ class FlashHDF53D(object):
             yind = yind[0][0]
             zind = np.where(self.z > self.bnd_box[cur_blk,2,0])
             zind = zind[0][0]
+            if zind != zslice: continue
             xspan = scaling*nxb
             xend = xind + xspan
             yspan = scaling*nyb
@@ -88,13 +89,13 @@ class FlashHDF53D(object):
             zend = zind + zspan
             if scaling > 1:
                 # Map array data by interpolation
-                xgrid, ygrid, zgrid = mgrid[0:xspan, 0:yspan, 0:zspan]
-                plot_var[xind:xend, yind:yend, zind:zend] = \
-                ndimage.map_coordinates(plot_data[cur_blk,:,:,:],
-                        np.array([xgrid/scaling, ygrid/scaling, zgrid/scaling] ),
+                xgrid, ygrid = mgrid[0:xspan, 0:yspan]
+                plot_var[xind:xend, yind:yend] = \
+                        ndimage.map_coordinates(plot_data[cur_blk,0,:,:],
+                        np.array([xgrid/scaling, ygrid/scaling]),
                         prefilter=False).transpose()
             else:
-                plot_var[xind:xend,yind:yend,zind:zend] = plot_data[cur_blk,:,:,:].transpose()
+                plot_var[xind:xend,yind:yend] = plot_data[cur_blk,0,:,:].transpose()
         return plot_var
 
 class FlashHDF52D(FlashHDF53D):
