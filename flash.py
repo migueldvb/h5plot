@@ -56,8 +56,10 @@ parser.add_argument("-q", "--equal", action="store_true", default=False,
         help="Make axes equal")
 parser.add_argument("--xz", action="store_true", default=False,
         help="Plot xz plane")
-parser.add_argument("--slice", type=int, default=0,
-        help="slize in z plane")
+parser.add_argument("--slice", type=float, default=0.5,
+        help="slice in z plane")
+parser.add_argument("--iaxis", type=int, default=2, choices=list(range(3)),
+        help="axis to take slice")
 args = parser.parse_args()
 
 # Read HDF5 data file
@@ -67,7 +69,13 @@ if args.dim == 2:
 elif args.dim == 3:
     hdf5 = flashhdf5.FlashHDF53D(args.filename)
 #     plot_var = hdf5.get_var('dens', axis=1, zslice=args.slice)
-    plot_var = hdf5.get_var('dens')[args.slice,:,:]
+    plot_var = hdf5.get_var('dens')
+    dims = plot_var.shape
+    sl = int((dims[args.iaxis]-1)*args.slice)
+    # slice 3D array at sl position
+    indices = [slice(0, d) for d in dims]
+    indices[args.iaxis] = sl
+    plot_var = plot_var[indices]
 nx, ny = plot_var.shape
 xrange = hdf5.xrange
 yrange = hdf5.yrange
