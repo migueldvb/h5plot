@@ -1,5 +1,10 @@
 #!/usr/bin/python
-"""FLASH HDF5 data class"""
+"""
+FLASH HDF5 data class
+
+This class is ported from the source/fidlr3/merge_amr.pro IDL routine in
+FLASH2.5
+"""
 
 from scipy import mgrid, ndimage
 import tables
@@ -18,8 +23,6 @@ class FlashHDF53D(object):
     def get_var(self, var, axis=1, zslice=0):
         """
         Interpolate data to a uniform grid
-
-        This method is ported from an IDL routine in FLASH2.5
         """
         print("opening file", self.filename)
         # Read node data
@@ -116,8 +119,6 @@ class FlashHDF52D(FlashHDF53D):
     def get_var(self, var):
         """
         Interpolate data to a uniform grid
-
-        This method is ported from an IDL routine in FLASH2.5
         """
         print("opening file", self.filename)
         # Read node data
