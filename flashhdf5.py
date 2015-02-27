@@ -85,7 +85,7 @@ class FlashHDF53D(object):
         nx = int(ntopx*nxb*2**(lmax-1))
         ny = int(ntopy*nyb*2**(lmax-1))
         nz = int(ntopy*nzb*2**(lmax-1))
-        plot_var = np.zeros((nx, ny))
+        plot_var = np.zeros((nx, ny, nz))
         # face-centered coordinates
         self.x = (np.arange(nx)+.5)*self.dx_fine + self.xrange[0]
         self.y = (np.arange(ny)+.5)*self.dy_fine + self.yrange[0]
@@ -102,33 +102,22 @@ class FlashHDF53D(object):
             zind = np.where(self.z > self.bnd_box[cur_blk,2,0])
             zind = zind[0][0]
             axis_ind = np.where(self.z > self.bnd_box[cur_blk,axis,0])[0][0]
-            if axis_ind != zslice: continue
             xspan = scaling*nxb
             xend = xind + xspan
             yspan = scaling*nyb
             yend = yind + yspan
             zspan = scaling*nzb
             zend = zind + zspan
-            if axis == 2:
-                if scaling > 1:
-                    # Map array data by interpolation
-                    xgrid, ygrid = mgrid[0:xspan, 0:yspan]
-                    plot_var[xind:xend, yind:yend] = \
-                            ndimage.map_coordinates(plot_data[cur_blk,0,:,:],
-                            np.array([xgrid/scaling, ygrid/scaling]),
-                            prefilter=False).transpose()
-                else:
-                    plot_var[xind:xend,yind:yend] = plot_data[cur_blk,0,:,:].transpose()
-            elif axis == 1:
-                if scaling > 1:
-                    # Map array data by interpolation
-                    xgrid, zgrid = mgrid[0:xspan, 0:zspan]
-                    plot_var[xind:xend, zind:zend] = \
-                            ndimage.map_coordinates(plot_data[cur_blk,:,0,:],
-                            np.array([xgrid/scaling, zgrid/scaling]),
-                            prefilter=False).transpose()
-                else:
-                    plot_var[xind:xend,zind:zend] = plot_data[cur_blk,:,0,:].transpose()
+            if scaling > 1:
+                # Map array data by interpolation
+                xgrid, ygrid, zgrid = mgrid[0:xspan, 0:yspan, 0:zspan]
+                plot_var[xind:xend, yind:yend, zind:zend] = \
+                    ndimage.map_coordinates(plot_data[cur_blk,:,:,:],
+                    np.array([xgrid/scaling, ygrid/scaling, zgrid/scaling]),
+                    prefilter=False).transpose()
+            else:
+                plot_var[xind:xend, yind:yend, zind:zend] = \
+                    plot_data[cur_blk,:,:,:].transpose()
         return plot_var
 
 class FlashHDF52D(FlashHDF53D):

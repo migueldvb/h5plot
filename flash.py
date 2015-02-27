@@ -66,7 +66,8 @@ if args.dim == 2:
     plot_var = hdf5.get_var('dens')
 elif args.dim == 3:
     hdf5 = flashhdf5.FlashHDF53D(args.filename)
-    plot_var = hdf5.get_var('dens', axis=1, zslice=args.slice)
+#     plot_var = hdf5.get_var('dens', axis=1, zslice=args.slice)
+    plot_var = hdf5.get_var('dens')[args.slice,:,:]
 nx, ny = plot_var.shape
 xrange = hdf5.xrange
 yrange = hdf5.yrange
