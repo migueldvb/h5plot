@@ -2,8 +2,9 @@
 """
 FLASH HDF5 data class
 
-This class is ported from the source/fidlr3/merge_amr.pro IDL routine in
-FLASH2.5
+This class is ported from the IDL routines in FLASH2.5
+source/fidlr3/merge_amr.pro
+source/fidlr3/read_amr.pro
 """
 
 from scipy import mgrid, ndimage
@@ -17,15 +18,15 @@ class FlashHDF53D(object):
     def __init__(self, filename):
         self.filename = filename
         self.h5file = tables.openFile(self.filename, "r")
+        self.h5f = h5py.File(self.filename, 'r')
 
     def close(self):
         self.h5file.close()
+        self.h5f.close()
 
-    def ndim(self):
+    def n_dim(self):
         """Number of dimensions"""
-        f = h5py.File(self.filename, 'r')
-        self.ndim = f['coordinates'].shape[1]
-        f.close()
+        self.ndim = self.h5f['coordinates'].shape[1]
 
     def get_var(self, var, axis=1, zslice=0):
         """
@@ -66,13 +67,16 @@ class FlashHDF53D(object):
         self.zrange = [min(self.bnd_box[:,2,0]), max(self.bnd_box[:,2,1])]
         # find the number of level 1 blocks whose lower y coord is the minimum
         # y value and whose lower z coord is the minimum z value
-        ntopx = np.where((self.bnd_box[:,1,0].flat[top_blocks] == self.yrange[0]) \
+        ntopx = np.where((
+                self.bnd_box[:,1,0].flat[top_blocks] == self.yrange[0]) \
                 & (self.bnd_box[:,2,0].flat[top_blocks] == self.zrange[0]))
         ntopx = ntopx[0].size
-        ntopy = np.where((self.bnd_box[:,0,0].flat[top_blocks] == self.xrange[0]) \
+        ntopy = np.where((
+                self.bnd_box[:,0,0].flat[top_blocks] == self.xrange[0]) \
                 & (self.bnd_box[:,2,0].flat[top_blocks] == self.zrange[0]))
         ntopy = ntopy[0].size
-        ntopz = np.where((self.bnd_box[:,0,0].flat[top_blocks] == self.xrange[0]) \
+        ntopz = np.where((
+                self.bnd_box[:,0,0].flat[top_blocks] == self.xrange[0]) \
                 & (self.bnd_box[:,1,0].flat[top_blocks] == self.yrange[0]))
         ntopz = ntopz[0].size
         self.dx_fine = (self.xrange[1]-self.xrange[0])/(ntopx*nxb*2**(lmax-1))
