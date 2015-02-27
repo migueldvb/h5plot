@@ -8,6 +8,7 @@ FLASH2.5
 
 from scipy import mgrid, ndimage
 import tables
+import h5py
 import numpy as np
 from io import StringIO
 
@@ -19,6 +20,12 @@ class FlashHDF53D(object):
 
     def close(self):
         self.h5file.close()
+
+    def ndim(self):
+        """Number of dimensions"""
+        f = h5py.File(self.filename, 'r')
+        self.ndim = f['coordinates'].shape[1]
+        f.close()
 
     def get_var(self, var, axis=1, zslice=0):
         """
