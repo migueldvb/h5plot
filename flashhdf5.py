@@ -15,7 +15,7 @@ class FlashHDF53D(object):
     def close(self):
         self.h5file.close()
 
-    def get_var(self, var, zslice=126):
+    def get_var(self, var, zslice=0):
         """
         Interpolate data to a uniform grid
 
