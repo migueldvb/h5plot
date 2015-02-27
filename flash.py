@@ -128,7 +128,10 @@ else:
         int(ny*(1.-args.zoom)/2.):int(ny*(1+args.zoom)/2.)].transpose()),
         aspect="auto", interpolation="hanning", extent=_drange)
     plt.xlabel("r [R$_{\odot}$]")
-    plt.ylabel("$\phi$ [${\pi}$]")
+    if args.iaxis == 1 or args.dim < 3:
+        plt.ylabel("$\phi$ [${\pi}$]")
+    else:
+        plt.ylabel(r"$\theta$ [${\pi}$]")
 
 if args.block: # Print grid structure
     # find boundaries of current block
