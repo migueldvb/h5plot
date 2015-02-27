@@ -49,13 +49,15 @@ parser.add_argument("-t", "--thumb", action="store_true", default=False,
         help="create thumbnail")
 parser.add_argument("--block", action="store_true", default=False,
         help="Print grid structure")
-parser.add_argument("--slice", type=float, default=1., help="zoom in")
+parser.add_argument("--zoom", type=float, default=1., help="zoom in")
 parser.add_argument("--fliplr", action="store_true", default=False,
         help="flip left right")
 parser.add_argument("-q", "--equal", action="store_true", default=False,
         help="Make axes equal")
 parser.add_argument("--xz", action="store_true", default=False,
         help="Plot xz plane")
+parser.add_argument("--slice", type=int, default=0,
+        help="slize in z plane")
 args = parser.parse_args()
 
 # Read HDF5 data file
@@ -64,13 +66,13 @@ if args.dim == 2:
     plot_var = hdf5.get_var('dens')
 elif args.dim == 3:
     hdf5 = flashhdf5.FlashHDF53D(args.filename)
-    plot_var = hdf5.get_var('dens', zslice=8)
+    plot_var = hdf5.get_var('dens', axis=2, zslice=args.slice)
 nx, ny = plot_var.shape
 xrange = hdf5.xrange
 yrange = hdf5.yrange
 # convert to real coordinates
 _range = [i for i in xrange+yrange]
-_drange = [args.slice*args.dist*i for i in xrange+yrange]
+_drange = [args.zoom*args.dist*i for i in xrange+yrange]
 
 # plot contour maps using matplotlib.pyplot
 fig = plt.figure()
@@ -113,8 +115,8 @@ else:
     matplotlib.rcParams['ytick.direction'] = 'out'
 #   plt.axis([args.dist*xrange[0],args.dist*xrange[1],yrange[0],yrange[1]])
     if args.fliplr: plot_var = np.fliplr(plot_var)
-    plt.imshow(np.flipud(plot_var[int(nx*(1.-args.slice)/2.):int(nx*(1+args.slice)/2.),
-        int(ny*(1.-args.slice)/2.):int(ny*(1+args.slice)/2.)].transpose()),
+    plt.imshow(np.flipud(plot_var[int(nx*(1.-args.zoom)/2.):int(nx*(1+args.zoom)/2.),
+        int(ny*(1.-args.zoom)/2.):int(ny*(1+args.zoom)/2.)].transpose()),
         aspect="auto", interpolation="hanning", extent=_drange)
     plt.xlabel("r [R$_{\odot}$]")
     plt.ylabel("$\phi$ [${\pi}$]")

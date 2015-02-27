@@ -15,7 +15,7 @@ class FlashHDF53D(object):
     def close(self):
         self.h5file.close()
 
-    def get_var(self, var, zslice=0):
+    def get_var(self, var, axis=1, zslice=0):
         """
         Interpolate data to a uniform grid
 
@@ -80,22 +80,34 @@ class FlashHDF53D(object):
             yind = yind[0][0]
             zind = np.where(self.z > self.bnd_box[cur_blk,2,0])
             zind = zind[0][0]
-            if zind != zslice: continue
+            axis_ind = np.where(self.z > self.bnd_box[cur_blk,axis,0])[0][0]
+            if axis_ind != zslice: continue
             xspan = scaling*nxb
             xend = xind + xspan
             yspan = scaling*nyb
             yend = yind + yspan
             zspan = scaling*nzb
             zend = zind + zspan
-            if scaling > 1:
-                # Map array data by interpolation
-                xgrid, ygrid = mgrid[0:xspan, 0:yspan]
-                plot_var[xind:xend, yind:yend] = \
-                        ndimage.map_coordinates(plot_data[cur_blk,0,:,:],
-                        np.array([xgrid/scaling, ygrid/scaling]),
-                        prefilter=False).transpose()
-            else:
-                plot_var[xind:xend,yind:yend] = plot_data[cur_blk,0,:,:].transpose()
+            if axis == 2:
+                if scaling > 1:
+                    # Map array data by interpolation
+                    xgrid, ygrid = mgrid[0:xspan, 0:yspan]
+                    plot_var[xind:xend, yind:yend] = \
+                            ndimage.map_coordinates(plot_data[cur_blk,0,:,:],
+                            np.array([xgrid/scaling, ygrid/scaling]),
+                            prefilter=False).transpose()
+                else:
+                    plot_var[xind:xend,yind:yend] = plot_data[cur_blk,0,:,:].transpose()
+            elif axis == 1:
+                if scaling > 1:
+                    # Map array data by interpolation
+                    xgrid, zgrid = mgrid[0:xspan, 0:zspan]
+                    plot_var[xind:xend, zind:zend] = \
+                            ndimage.map_coordinates(plot_data[cur_blk,:,0,:],
+                            np.array([xgrid/scaling, zgrid/scaling]),
+                            prefilter=False).transpose()
+                else:
+                    plot_var[xind:xend,zind:zend] = plot_data[cur_blk,:,0,:].transpose()
         return plot_var
 
 class FlashHDF52D(FlashHDF53D):
