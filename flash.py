@@ -18,40 +18,43 @@ import flashhdf5
 
 # Parse command line strings
 parser = ArgumentParser()
-parser.add_argument("-p", "--polar", action="store_true", dest="polar", default=False,
+parser.add_argument("-p", "--polar", action="store_true", default=False,
         help="plot in polar coordinates")
-parser.add_argument("-c", "--cartesian", action="store_false", dest="polar",
+parser.add_argument("-c", "--cartesian", action="store_false",
         help="plot in Cartesian coordinates")
-parser.add_argument("-l", "--log", action="store_true", dest="log", default=True, 
+parser.add_argument("-l", "--log", action="store_true", default=True,
         help="plot in log scale")
-parser.add_argument("--linear", action="store_false", dest="log", help="plot in linear scale")
-parser.add_argument("--ns", dest="ns", type=int, default=128, help="number of colors")
+parser.add_argument("--linear", action="store_false", dest="log",
+        help="plot in linear scale")
+parser.add_argument("--ns", type=int, default=128, help="number of colors")
 parser.add_argument("-n", "--dim", type=int, default=2, choices=(2,3),
         help="number of dimensions")
-parser.add_argument("-f", "--file", dest="filename", help="Input file to read data from")
-parser.add_argument("-s", "--save", action="store_true", default=False, dest="save", 
+parser.add_argument("-f", "--file", dest="filename",
+        help="Input file to read data from")
+parser.add_argument("-s", "--save", action="store_true", default=False,
         help="Save to output image")
 parser.add_argument("-o", "--output", action="store", default="", dest="out",
         help="Save to directory")
-parser.add_argument("-d", "--dist", dest="dist", default=1, type=float,
+parser.add_argument("-d", "--dist", default=1, type=float,
         help="distance in physical units")
-parser.add_argument("-b", "--bar", action="store_true", default=False, dest="bar",
+parser.add_argument("-b", "--bar", action="store_true", default=False,
         help="Print color bar")
-parser.add_argument("-v", "--vect", action="store_true", default=False, dest="vect", 
+parser.add_argument("-v", "--vect", action="store_true", default=False,
         help="Print velocity arrows")
-parser.add_argument("-e", "--ext", default="png", dest="ext", help="Extension of output file")
-parser.add_argument("-x", "--noaxis", action="store_false", default=True, dest="axis", 
-        help="Do not print axis")
-parser.add_argument("-t", "--thumb", action="store_true", default=False, dest="thumb", 
+parser.add_argument("-e", "--ext", default="png",
+        help="Extension of output file")
+parser.add_argument("-x", "--noaxis", dest="axis", action="store_false",
+        default=True, help="Do not print axis")
+parser.add_argument("-t", "--thumb", action="store_true", default=False,
         help="create thumbnail")
-parser.add_argument("--block", action="store_true", default=False, dest="block",
+parser.add_argument("--block", action="store_true", default=False,
         help="Print grid structure")
-parser.add_argument("--slice", dest="slice", type=float, default=1., help="zoom in")
-parser.add_argument("--fliplr", action="store_true", dest="fliplr", default=False, 
+parser.add_argument("--slice", type=float, default=1., help="zoom in")
+parser.add_argument("--fliplr", action="store_true", default=False,
         help="flip left right")
 parser.add_argument("-q", "--equal", action="store_true", default=False,
-        dest="equal", help="Make axes equal")
-parser.add_argument("--xz", action="store_true", default=False, dest="xz",
+        help="Make axes equal")
+parser.add_argument("--xz", action="store_true", default=False,
         help="Plot xz plane")
 args = parser.parse_args()
 
@@ -105,7 +108,7 @@ if args.polar:
 #         plt.ylabel("$y$ [R$_{\odot}$]")
     plt.axes().set_aspect('equal')
 else:
-    # do not transform coordinates 
+    # do not transform coordinates
     matplotlib.rcParams['xtick.direction'] = 'out'
     matplotlib.rcParams['ytick.direction'] = 'out'
 #   plt.axis([args.dist*xrange[0],args.dist*xrange[1],yrange[0],yrange[1]])
@@ -131,7 +134,7 @@ if args.block: # Print grid structure
         y1 = hdf5.bnd_box[cur_blk,1,1]
         if args.polar:
             # plot radial spokes
-            plt.plot([x0*np.cos(y0), x1*np.cos(y0)], 
+            plt.plot([x0*np.cos(y0), x1*np.cos(y0)],
                     [x0*np.sin(y0), x1*np.sin(y0)], 'k')
             # plot azimuthal arcs
             arc = matplotlib.patches.Arc((0., 0.), 2*x0, 2*x0, 0., np.degrees(y0),
