@@ -23,6 +23,13 @@ class FlashHDF53D(object):
     def get_var(self, var, axis=1, zslice=0):
         """
         Interpolate data to a uniform grid
+
+        Parameters
+        ----------
+        axis : int
+            axis to get a slice from (0, 1, 2)
+        zslice : int
+            cell number in axis
         """
         print("opening file", self.filename)
         # Read node data
@@ -45,7 +52,7 @@ class FlashHDF53D(object):
 #         nxb, nyb, nzb = 8, 8, 8
 
         self.index_good = np.where(self.node_type == 1)
-        lwant = max(self.lrefine[self.index_good])
+        lmax = max(self.lrefine[self.index_good])
         top_blocks = np.where(self.lrefine == 1)
         self.xrange = [min(self.bnd_box[:,0,0]), max(self.bnd_box[:,0,1])]
         self.yrange = [min(self.bnd_box[:,1,0]), max(self.bnd_box[:,1,1])]
@@ -61,12 +68,12 @@ class FlashHDF53D(object):
         ntopz = np.where((self.bnd_box[:,0,0].flat[top_blocks] == self.xrange[0]) \
                 & (self.bnd_box[:,1,0].flat[top_blocks] == self.yrange[0]))
         ntopz = ntopz[0].size
-        self.dx_fine = (self.xrange[1]-self.xrange[0])/(ntopx*nxb*2**(lwant-1))
-        self.dy_fine = (self.yrange[1]-self.yrange[0])/(ntopy*nyb*2**(lwant-1))
-        self.dz_fine = (self.zrange[1]-self.zrange[0])/(ntopz*nzb*2**(lwant-1))
-        nx = int(ntopx*nxb*2**(lwant-1))
-        ny = int(ntopy*nyb*2**(lwant-1))
-        nz = int(ntopy*nzb*2**(lwant-1))
+        self.dx_fine = (self.xrange[1]-self.xrange[0])/(ntopx*nxb*2**(lmax-1))
+        self.dy_fine = (self.yrange[1]-self.yrange[0])/(ntopy*nyb*2**(lmax-1))
+        self.dz_fine = (self.zrange[1]-self.zrange[0])/(ntopz*nzb*2**(lmax-1))
+        nx = int(ntopx*nxb*2**(lmax-1))
+        ny = int(ntopy*nyb*2**(lmax-1))
+        nz = int(ntopy*nzb*2**(lmax-1))
         plot_var = np.zeros((nx, ny))
         # face-centered coordinates
         self.x = (np.arange(nx)+.5)*self.dx_fine + self.xrange[0]
@@ -75,7 +82,7 @@ class FlashHDF53D(object):
 
         # loop through good blocks
         for cur_blk in self.index_good[0]:
-            scaling = 2**(lwant - self.lrefine[cur_blk])
+            scaling = 2**(lmax - self.lrefine[cur_blk])
             # find out where the master array should live
             xind = np.where(self.x > self.bnd_box[cur_blk,0,0])
             xind = xind[0][0]
@@ -139,7 +146,7 @@ class FlashHDF52D(FlashHDF53D):
             nyb = self.h5file.getNode('/simulation parameters')[0]['nyb']
 
         self.index_good = np.where(node_type == 1)
-        lwant = max(self.lrefine[self.index_good])
+        lmax = max(self.lrefine[self.index_good])
         top_blocks = np.where(self.lrefine == 1)
         self.xrange = [min(self.bnd_box[:,0,0]), max(self.bnd_box[:,0,1])]
         self.yrange = [min(self.bnd_box[:,1,0]), max(self.bnd_box[:,1,1])]
@@ -151,10 +158,10 @@ class FlashHDF52D(FlashHDF53D):
         ntopy = np.where((self.bnd_box[:,0,0].flat[top_blocks] ==
             self.xrange[0]))
         ntopy = ntopy[0].size
-        self.dx_fine = (self.xrange[1]-self.xrange[0])/(ntopx*nxb*2**(lwant-1))
-        self.dy_fine = (self.yrange[1]-self.yrange[0])/(ntopy*nyb*2**(lwant-1))
-        nx = int(ntopx*nxb*2**(lwant-1))
-        ny = int(ntopy*nyb*2**(lwant-1))
+        self.dx_fine = (self.xrange[1]-self.xrange[0])/(ntopx*nxb*2**(lmax-1))
+        self.dy_fine = (self.yrange[1]-self.yrange[0])/(ntopy*nyb*2**(lmax-1))
+        nx = int(ntopx*nxb*2**(lmax-1))
+        ny = int(ntopy*nyb*2**(lmax-1))
         plot_var = np.zeros((nx, ny))
         # face-centered coordinates
         self.x = (np.arange(nx)+.5)*self.dx_fine + self.xrange[0]
@@ -162,7 +169,7 @@ class FlashHDF52D(FlashHDF53D):
 
         # loop through good blocks
         for cur_blk in self.index_good[0]:
-            scaling = 2**(lwant - self.lrefine[cur_blk])
+            scaling = 2**(lmax - self.lrefine[cur_blk])
             # find out where the master array should live
             xind = np.where(self.x > self.bnd_box[cur_blk,0,0])
             xind = xind[0][0]
