@@ -77,8 +77,12 @@ elif args.dim == 3:
     indices[args.iaxis] = sl
     plot_var = plot_var[indices]
 nx, ny = plot_var.shape
-xrange = hdf5.xrange
-yrange = hdf5.yrange
+try:
+    range_list = [hdf5.xrange, hdf5.yrange, hdf5.zrange]
+    range_list.pop(args.iaxis)
+    xrange, yrange = range_list
+except AttributeError:
+    xrange, yrange = hdf5.xrange, hdf5.yrange
 # convert to real coordinates
 _range = [i for i in xrange+yrange]
 _drange = [args.zoom*args.dist*i for i in xrange+yrange]
@@ -124,7 +128,8 @@ else:
     matplotlib.rcParams['ytick.direction'] = 'out'
 #   plt.axis([args.dist*xrange[0],args.dist*xrange[1],yrange[0],yrange[1]])
     if args.fliplr: plot_var = np.fliplr(plot_var)
-    plt.imshow(np.flipud(plot_var[int(nx*(1.-args.zoom)/2.):int(nx*(1+args.zoom)/2.),
+    plt.imshow(np.flipud(
+        plot_var[int(nx*(1.-args.zoom)/2.):int(nx*(1+args.zoom)/2.),
         int(ny*(1.-args.zoom)/2.):int(ny*(1+args.zoom)/2.)].transpose()),
         aspect="auto", interpolation="hanning", extent=_drange)
     plt.xlabel("r [R$_{\odot}$]")
@@ -151,8 +156,8 @@ if args.block: # Print grid structure
             plt.plot([x0*np.cos(y0), x1*np.cos(y0)],
                     [x0*np.sin(y0), x1*np.sin(y0)], 'k')
             # plot azimuthal arcs
-            arc = matplotlib.patches.Arc((0., 0.), 2*x0, 2*x0, 0., np.degrees(y0),
-                    np.degrees(y1))
+            arc = matplotlib.patches.Arc((0., 0.), 2*x0, 2*x0, 0.,
+                    np.degrees(y0), np.degrees(y1))
             ax.add_patch(arc)
         else:
             plt.plot([x0,x0,x1], [y0,y1,y1], 'k')
