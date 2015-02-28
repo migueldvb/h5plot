@@ -101,7 +101,6 @@ class FlashHDF53D(object):
             yind = yind[0][0]
             zind = np.where(self.z > self.bnd_box[cur_blk,2,0])
             zind = zind[0][0]
-            axis_ind = np.where(self.z > self.bnd_box[cur_blk,axis,0])[0][0]
             xspan = scaling*nxb
             xend = xind + xspan
             yspan = scaling*nyb
