@@ -131,10 +131,10 @@ class FlashHDF52D(FlashHDF53D):
         self.coord = self.h5f['/coordinates']
         size = self.h5f['/block size']
         self.bnd_box = self.h5f['/bounding box']
-        plot_data = self.h5file.getNode('/{0}'.format(var)).read()
-        node_type = self.h5file.getNode('/node type').read()
-        self.lrefine = self.h5file.getNode('/refine level').read()
-        self.gid = self.h5file.getNode('/gid').read()
+        plot_data = self.h5f['/{0}'.format(var)]
+        node_type = self.h5f['/node type'].value
+        self.lrefine = self.h5f['/refine level'].value
+        self.gid = self.h5f['/gid']
         # number of cells in each direction
         try:
             nxb = self.h5file.getNode('/integer scalars')[0][1]
