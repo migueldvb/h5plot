@@ -60,16 +60,19 @@ parser.add_argument("--slice", type=float, default=0.5,
         help="slice in z plane")
 parser.add_argument("--iaxis", type=int, default=2, choices=list(range(3)),
         help="axis to take slice")
+parser.add_argument("--var", default='dens',
+        choices=('dens', 'pres', 'temp', 'velx', 'vely', 'velz'),
+        help="plot variable")
 args = parser.parse_args()
 
 # Read HDF5 data file
 if args.dim == 2:
     hdf5 = flashhdf5.FlashHDF52D(args.filename)
-    plot_var = hdf5.get_var('dens')
+    plot_var = hdf5.get_var(args.var)
 elif args.dim == 3:
     hdf5 = flashhdf5.FlashHDF53D(args.filename)
 #     plot_var = hdf5.get_var('dens', axis=1, zslice=args.slice)
-    plot_var = hdf5.get_var('dens')
+    plot_var = hdf5.get_var(args.var)
     dims = plot_var.shape
     sl = int((dims[args.iaxis]-1)*args.slice)
     # slice 3D array at sl position
