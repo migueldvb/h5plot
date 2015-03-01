@@ -41,7 +41,7 @@ class FlashHDF53D(object):
         """
         print("opening file", self.filename)
         # Read node data
-        self.coord = self.h5file.getNode('/coordinates').read()
+        self.coord = self.h5f['/coordinates']
         self.ndim = self.coord[1]
         self.bnd_box = self.h5file.getNode( '/bounding box').read()
         plot_data = self.h5file.getNode('/{0}'.format(var)).read()
@@ -128,9 +128,9 @@ class FlashHDF52D(FlashHDF53D):
         """
         print("opening file", self.filename)
         # Read node data
-        self.coord = self.h5file.getNode('/coordinates').read()
-        size = self.h5file.getNode('/block size').read()
-        self.bnd_box = self.h5file.getNode( '/bounding box').read()
+        self.coord = self.h5f['/coordinates']
+        size = self.h5f['/block size']
+        self.bnd_box = self.h5f['/bounding box']
         plot_data = self.h5file.getNode('/{0}'.format(var)).read()
         node_type = self.h5file.getNode('/node type').read()
         self.lrefine = self.h5file.getNode('/refine level').read()
