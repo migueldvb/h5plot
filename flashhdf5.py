@@ -8,7 +8,6 @@ source/fidlr3/read_amr.pro
 """
 
 from scipy import mgrid, ndimage
-import tables
 import h5py
 import numpy as np
 from io import StringIO
@@ -17,11 +16,9 @@ class FlashHDF53D(object):
     """Read FLASH HDF5 data"""
     def __init__(self, filename):
         self.filename = filename
-        self.h5file = tables.openFile(self.filename, "r")
         self.h5f = h5py.File(self.filename, 'r')
 
     def close(self):
-        self.h5file.close()
         self.h5f.close()
 
     def n_dim(self):
@@ -43,21 +40,21 @@ class FlashHDF53D(object):
         # Read node data
         self.coord = self.h5f['/coordinates']
         self.ndim = self.coord[1]
-        self.bnd_box = self.h5file.getNode( '/bounding box').read()
-        plot_data = self.h5file.getNode('/{0}'.format(var)).read()
-        self.node_type = self.h5file.getNode('/node type').read()
-        self.lrefine = self.h5file.getNode('/refine level').read()
+        # number of cells in each direction
+        self.bnd_box = self.h5f['/bounding box']
+        plot_data = self.h5f['/{0}'.format(var)]
+        self.node_type = self.h5f['/node type'].value
+        self.lrefine = self.h5f['/refine level'].value
         # number of cells in each direction
         try:
-            nxb = self.h5file.getNode('/integer scalars')[0][1]
-            nyb = self.h5file.getNode('/integer scalars')[1][1]
-            nzb = self.h5file.getNode('/integer scalars')[2][1]
-        except tables.exceptions.NoSuchNodeError:
+            nxb = self.h5f['/integer scalars'][0][1]
+            nyb = self.h5f['/integer scalars'][1][1]
+            nzb = self.h5f['/integer scalars'][2][1]
+        except KeyError:
             # FLASH2.5 simulation parameters record
-            nxb = self.h5file.getNode('/simulation parameters')[0]['nxb']
-            nyb = self.h5file.getNode('/simulation parameters')[0]['nyb']
-            nzb = self.h5file.getNode('/simulation parameters')[0]['nzb']
-#         nxb, nyb, nzb = 8, 8, 8
+            nxb = self.h5f['/simulation parameters'][0]['nxb']
+            nyb = self.h5f['/simulation parameters'][0]['nyb']
+            nzb = self.h5f['/simulation parameters'][0]['nzb']
 
         self.index_good = np.where(self.node_type == 1)
         lmax = max(self.lrefine[self.index_good])
@@ -137,12 +134,12 @@ class FlashHDF52D(FlashHDF53D):
         self.gid = self.h5f['/gid']
         # number of cells in each direction
         try:
-            nxb = self.h5file.getNode('/integer scalars')[0][1]
-            nyb = self.h5file.getNode('/integer scalars')[1][1]
-        except tables.exceptions.NoSuchNodeError:
+            nxb = self.h5f['/integer scalars'][0][1]
+            nyb = self.h5f['/integer scalars'][1][1]
+        except KeyError:
             # FLASH2.5 simulation parameters record
-            nxb = self.h5file.getNode('/simulation parameters')[0]['nxb']
-            nyb = self.h5file.getNode('/simulation parameters')[0]['nyb']
+            nxb = self.h5f['/simulation parameters'][0]['nxb']
+            nyb = self.h5f['/simulation parameters'][0]['nyb']
 
         self.index_good = np.where(node_type == 1)
         lmax = max(self.lrefine[self.index_good])
